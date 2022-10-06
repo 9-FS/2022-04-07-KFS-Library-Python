@@ -69,7 +69,7 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
 
         if overwrite_line_current==True:    #wenn Zeile aktuell überschreiben:
             print("\r", end="")             #in Konsole Carriage Return
-            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at") as log_file:    
+            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:    
                 log_file.write(f"\n")       #in Datei aber Zeilenumbruch
             timestamp_old=timestamp_new     #Zeitstempel zuletzt ausgegeben aktualisieren
         elif append_to_line_current==True:  #wenn in Zeile aktuell dranhängen:
@@ -77,7 +77,7 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
             timestamp_in_file="none"
         else:                           #wenn Zeile neu:
             print("\n", end="")         #in Konsole Zeilenumbruch
-            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at") as log_file:
+            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
                 log_file.write(f"\n")   #in Datei Zeilenumbruch
             timestamp_old=timestamp_new                 #Zeitstempel zuletzt ausgegeben aktualisieren
     
@@ -103,7 +103,7 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
             timestamp=""
         else:
             raise RuntimeError(f"Error in KFS::log::write(...): timestamp_in_file has invalid value which should not occur (\"{timestamp_in_file}\").")
-        with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at") as log_file:
+        with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
             log_file.write(f"{timestamp}{text}")
 
     return
