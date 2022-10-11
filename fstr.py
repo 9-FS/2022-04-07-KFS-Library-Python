@@ -1,5 +1,4 @@
 import math
-from . import math
 
 
 def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #Notation technisch, gibt String zurück
