@@ -1,5 +1,5 @@
 import math
-from KFS import KFSmath
+from . import math
 
 
 def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #Notation technisch, gibt String zurück
@@ -23,7 +23,7 @@ def notation_tech(x: float, precision: int, round_static: bool=False, trailing_z
         magnitude=0                                 #für 0 Größenordnung 0 sinnvoll wegen Dezimalpräfix
     
     if round_static==False:
-        x=KFSmath.round_sig(x, precision)           #runden auf Signifikante
+        x=math.round_sig(x, precision)           #runden auf Signifikante
         dec_places=magnitude%3*-1+precision-1       #Nachkommastellen benötigt
     else:
         x=round(x, precision)                       #runden auf Nachkommastelle statisch

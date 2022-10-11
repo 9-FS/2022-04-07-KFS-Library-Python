@@ -3,7 +3,7 @@ import math
 import os
 from threading import Lock  #Mutex
 import typing               #Datentyptipps
-from KFS import KFSfstr     #Notation technisch
+from . import fstr     #Notation technisch
 
 
 line_last_len=0                 #Zeile letzte Länge um evt. zu überschreiben
@@ -139,12 +139,12 @@ def timeit(f: T) -> T: #dekoriert Funktion für "wird jetzt ausgeführt..." und 
         except: #crasht
             t1=dt.datetime.now(dt.timezone.utc)
             execution_time=(t1-t0).total_seconds()
-            write(f"Tried to execute {function_signature}, but crashed. Duration: {KFSfstr.notation_tech(execution_time, 4)}s.")
+            write(f"Tried to execute {function_signature}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s.")
             raise   #Ausnahme weiterreichen
                
         t1=dt.datetime.now(dt.timezone.utc)
         execution_time=(t1-t0).total_seconds()
-        write(f"Executed {function_signature}={str(y)}. Duration: {KFSfstr.notation_tech(execution_time, 4)}s.")
+        write(f"Executed {function_signature}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s.")
         
         return y
     
