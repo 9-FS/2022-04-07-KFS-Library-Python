@@ -3,7 +3,7 @@ from . import typecheck
 
 
 def round_sig(x: float, significants: int) -> int: #round to significant number, returns number not string
-    typecheck(round_sig, locals(), typecheck.Mode.convertable, typecheck.Mode.instance)
+    typecheck.check(round_sig, locals(), typecheck.Mode.convertable, typecheck.Mode.instance)
     
     if x==0:
         return 0
