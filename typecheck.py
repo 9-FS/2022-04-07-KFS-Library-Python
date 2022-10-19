@@ -10,8 +10,8 @@ class Mode(Enum):   #Typcheckmodi
 
 
 def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:
-    if type(f)!=typing.Callable:
-        raise ValueError("Error in KFS::typecheck::check(...): Argument f must be of type typing.Callable, use your local function.")
+    #if type(f)==function: TODO funktioniert so nicht
+    #    raise ValueError("Error in KFS::typecheck::check(...): Argument f must be callable, use your local function.")
     if type(locals)!=dict:
         raise ValueError("Error in KFS::typecheck::check(...): Argument locals must be of type dict, use the locals() function.")
     for mode in modes:
