@@ -3,7 +3,7 @@ import math
 import os
 from threading import Lock  #Mutex
 import typing               #Datentyptipps
-import fstr                 #Notation technisch
+from . import fstr          #Notation technisch
 
 
 line_last_len=0                 #Zeile letzte Länge um evt. zu überschreiben
