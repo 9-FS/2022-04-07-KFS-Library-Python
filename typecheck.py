@@ -10,9 +10,17 @@ class Mode(Enum):   #Typcheckmodi
 
 
 def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:
-    type_hints=typing.get_type_hints(f) #Datentyptipps verwendet
-    
+    if type(f)!=typing.Callable:
+        raise ValueError("Error in KFS::typecheck::check(...): Argument f must be of type typing.Callable, use your local function.")
+    if type(locals)!=dict:
+        raise ValueError("Error in KFS::typecheck::check(...): Argument locals must be of type dict, use the locals() function.")
+    for mode in modes:
+        if type(mode)!=Mode:
+            raise ValueError("Error in KFS::typecheck::check(...): Given modes must be of type KFS::typecheck::Mode.")
+    #ValueError und kein TypeError, weil TypeError erwartet wird wenn in f ein Argument den falschen Typ hat.
 
+
+    type_hints=typing.get_type_hints(f) #Datentyptipps verwendet
     try:
         del type_hints["return"]    #Rückgabedatentyptipp ignorieren
     except KeyError:                #wenn vorher schon nicht existiert: okay subba, nix tun
