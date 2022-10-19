@@ -1,16 +1,12 @@
 import math
+from . import typecheck
 
 
-def round_sig(x: float, significants: int) -> int: #gerundet auf Signifikante, gibt Zahl zurück
-    try:
-        x=float(x)
-    except ValueError:
-        raise TypeError("Error in KFS::math::round_sig(...): Type of \"x\" must be float or convertable to float.")
-    if type(significants)!=int:
-        raise TypeError("Error in KFS::math::round_sig(...): Type of \"significants\" must be int.")
+def round_sig(x: float, significants: int) -> int: #round to significant number, returns number not string
+    typecheck(round_sig, locals(), typecheck.Mode.convertable, typecheck.Mode.instance)
     
     if x==0:
         return 0
 
-    magnitude=math.floor(math.log10(abs(x)))
-    return round(x, -1*magnitude+significants-1)  #runden
+    magnitude=math.floor(math.log10(abs(x)))        #determine magnitude floored
+    return round(x, -1*magnitude+significants-1)    #round

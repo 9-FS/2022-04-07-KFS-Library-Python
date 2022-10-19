@@ -1,45 +1,35 @@
 import math
-from . import math as KFSmath   #für round_sig, muss "as KFSmath" weil sonst Namenskonflikt mit math
+from . import math as KFSmath   #for round_sig, must "as KFSmath" because otherwise name conflict with math
+from . import typecheck
 
 
-def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #Notation technisch, gibt String zurück
-    try:
-        x=float(x)
-    except ValueError:
-        raise TypeError("Error in KFS::fstr::notation_tech(...): Type of \"x\" must be float or convertable to float.")
-    if type(precision)!=int:
-        raise TypeError("Error in KFS::fstr::notation_tech(...): Type of \"precision\" must be int.")
-    if type(round_static)!=bool:
-        raise TypeError("Error in KFS::fstr::notation_tech(...): Type of \"round_static\" must be bool.")
-    if type(trailing_zeros)!=bool:
-        raise TypeError("Error in KFS::fstr::notation_tech(...): Type of \"add_decimal_prefix\" must be bool.")
-    if type(add_decimal_prefix)!=bool:
-        raise TypeError("Error in KFS::fstr::notation_tech(...): Type of \"add_decimal_prefix\" must be bool.")
+def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #converts to notation technical as string
+    typecheck.check(notation_tech, locals(), typecheck.Mode.convertable, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance)
     
 
     if x!=0:
-        magnitude=math.floor(math.log10(abs(x)))    #x Größenordnung, abgerundet
+        magnitude=math.floor(math.log10(abs(x)))    #x magnitude floored
     else:
-        magnitude=0                                 #für 0 Größenordnung 0 sinnvoll wegen Dezimalpräfix
+        magnitude=0                                 #for number 0 magnitude 0 practical for decimal prefix
     
     if round_static==False:
-        x=KFSmath.round_sig(x, precision)           #runden auf Signifikante
-        dec_places=magnitude%3*-1+precision-1       #Nachkommastellen benötigt
+        x=KFSmath.round_sig(x, precision)           #round to signifcant number
+        dec_places=magnitude%3*-1+precision-1       #decimal places required
     else:
-        x=round(x, precision)                       #runden auf Nachkommastelle statisch
-        dec_places=magnitude-magnitude%3+precision  #Nachkommastellen benötigt
-    if dec_places<0:                                #0 Nachkommastellen mindestens
+        x=round(x, precision)                       #round to decimal place static
+        dec_places=magnitude-magnitude%3+precision  #decimal places required
+    if dec_places<0:                                #at least 0 decimal places
         dec_places=0
 
 
-    x=f"{x/math.pow(10, magnitude-magnitude%3):.{dec_places}f}".replace(".", ",")   #int zu str, auf richtige Dezimalmagnitude und Nachkommastellen, Komma als Dezimalseperator
+    x=f"{x/math.pow(10, magnitude-magnitude%3):.{dec_places}f}".replace(".", ",")   #int to str, to correct magnitude and number of decimal places, comma as decimal separator
     
-    if trailing_zeros==False and "," in x:  #wenn Trailing Zeros unerwünscht und Nachkommabereich vorhanden:
-        x=x.rstrip("0")                     #Trailing Zeros entfernen
-        if x[-1]==",":                      #wenn dadurch Zeichen letztes Komma:
-            x=x[:-1]                        #Komma entfernen
+    if trailing_zeros==False and "," in x:  #if trailing zeros undesired and decimal places existing:
+        x=x.rstrip("0")                     #remove trailing zeros
+        if x[-1]==",":                      #if because of that last character comma:
+            x=x[:-1]                        #remove comma
     
-    if add_decimal_prefix==True:    #wenn Dezimalpräfix erwünscht: anhängen
+    if add_decimal_prefix==True:    #if decimal prefix desired: append
         if    24<=magnitude and magnitude< 27:
             x+="Y"
         elif  21<=magnitude and magnitude< 24:
