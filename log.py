@@ -13,7 +13,11 @@ timestamp_old_line_previous=""  #timestamp previously  used on line previous
 write_mutex=Lock()              #make everything thread safe
 
 
-def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) -> None:    #writes log
+def write(text: str,
+          append_to_line_current: bool=False,
+          UNIX_time: bool=False,
+          write_on_console: bool=True,
+          write_in_file: bool=True) -> None:    #writes log
     global line_last_len
     global timestamp_old
     global timestamp_old_line_previous
@@ -25,7 +29,7 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
     timestamp_new=""                #timestamp current, only use with mode "full"
 
 
-    typecheck.check(write, locals(), typecheck.Mode.convertable, typecheck.Mode.instance, typecheck.Mode.instance)
+    typecheck.check(write, locals(), typecheck.Mode.convertable, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance)
 
 
     DT_now=dt.datetime.now(dt.timezone.utc)                                         #datetime now
@@ -39,9 +43,10 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
     with write_mutex:                   #from now on lock other threads out because now working with variables global
         if text[0:1]=="\r":             #if character [0] carriage return: clear and overwrite line previous
             overwrite_line_current=True #overwrite
-            print("\r", end="", flush=True)
-            for i in range(math.ceil(line_last_len/100)):
-                print("                                                                                                    ", end="")
+            if write_on_console==True:
+                print("\r", end="", flush=True)
+                for i in range(math.ceil(line_last_len/100)):
+                    print("                                                                                                    ", end="")
             text=text[1:]               #remove carriage return
 
         for i in range(len(timestamp_new)+1):           #add indentation
@@ -62,43 +67,49 @@ def write(text: str, append_to_line_current: bool=False, UNIX_time: bool=False) 
             timestamp_in_file="just spaces"     #no timestamp, only indentation
 
         if overwrite_line_current==True:    #if overwrite line current:
-            print("\r", end="")             #in console carriage return
-            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:    
-                log_file.write(f"\n")       #but in log file line break
+            if write_on_console==True:
+                print("\r", end="")         #in console carriage return
+            if write_in_file==True:
+                with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:    
+                    log_file.write(f"\n")   #but in log file line break
             timestamp_old=timestamp_new     #update timestamp previous
         elif append_to_line_current==True:  #if append to line current:
             timestamp_in_console="none"     #ignore default timestamp settings, never any timestamp, never any indentation
             timestamp_in_file="none"
         else:                           #if line new:
-            print("\n", end="")         #in console line break
-            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
-                log_file.write(f"\n")   #in log file line break
-            timestamp_old=timestamp_new #update timestamp previous
+            if write_on_console==True:
+                print("\n", end="")         #in console line break
+            if write_in_file==True:
+                with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
+                    log_file.write(f"\n")   #in log file line break
+            timestamp_old=timestamp_new     #update timestamp previous
     
 
-        if timestamp_in_console=="full":            #if timestamp desired:
-            timestamp=f"{timestamp_new} "
-        elif timestamp_in_console=="just spaces":   #if indentation desired:
-            for i in range(len(timestamp_old)+1):
-                timestamp+=" "                      #no timestamp, only indentation
-        elif timestamp_in_console=="none":          #if nothing desired:
-            timestamp=""
-        else:
-            raise RuntimeError(f"Error in KFS::log::write(...): timestamp_in_console has invalid value which should not occur (\"{timestamp_in_console}\").")
-        print(f"{timestamp}{text}", end="", flush=True)
-        timestamp=""    #before determining timestamp for log file: reset
+        if write_on_console==True:
+            if timestamp_in_console=="full":            #if timestamp desired:
+                timestamp=f"{timestamp_new} "
+            elif timestamp_in_console=="just spaces":   #if indentation desired:
+                for i in range(len(timestamp_old)+1):
+                    timestamp+=" "                      #no timestamp, only indentation
+            elif timestamp_in_console=="none":          #if nothing desired:
+                timestamp=""
+            else:
+                raise RuntimeError(f"Error in KFS::log::write(...): timestamp_in_console has invalid value which should not occur (\"{timestamp_in_console}\").")
+            print(f"{timestamp}{text}", end="", flush=True)
+            timestamp=""    #before determining timestamp for log file: reset
         
-        if timestamp_in_file=="full":               #if timestamp desired:
-            timestamp=f"{timestamp_new} "
-        elif timestamp_in_file=="just spaces":      #if indentation desired:
-            for i in range(len(timestamp_old)+1):
-                timestamp+=" "                      #no timestamp, only indentation
-        elif timestamp_in_file=="none":             #if nothing desired:
-            timestamp=""
-        else:
-            raise RuntimeError(f"Error in KFS::log::write(...): timestamp_in_file has invalid value which should not occur (\"{timestamp_in_file}\").")
-        with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
-            log_file.write(f"{timestamp}{text}")
+        if write_in_file==True:
+            if timestamp_in_file=="full":               #if timestamp desired:
+                timestamp=f"{timestamp_new} "
+            elif timestamp_in_file=="just spaces":      #if indentation desired:
+                for i in range(len(timestamp_old)+1):
+                    timestamp+=" "                      #no timestamp, only indentation
+            elif timestamp_in_file=="none":             #if nothing desired:
+                timestamp=""
+            else:
+                raise RuntimeError(f"Error in KFS::log::write(...): timestamp_in_file has invalid value which should not occur (\"{timestamp_in_file}\").")
+            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
+                log_file.write(f"{timestamp}{text}")
 
     return
 
