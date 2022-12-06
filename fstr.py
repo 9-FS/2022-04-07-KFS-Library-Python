@@ -5,7 +5,8 @@ from . import typecheck
 
 def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #converts to notation technical as string
     typecheck.check(notation_tech, locals(), typecheck.Mode.convertable, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance)
-    
+    x=float(x)
+
 
     if x!=0:
         magnitude=math.floor(math.log10(abs(x)))    #x magnitude floored

@@ -30,6 +30,7 @@ def write(text: str,
 
 
     typecheck.check(write, locals(), typecheck.Mode.convertable, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance)
+    text=str(text)
 
 
     DT_now=dt.datetime.now(dt.timezone.utc)                                         #datetime now
