@@ -28,7 +28,7 @@ def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:
         pass
     
     if len(type_hints)!=len(modes): #number of given modes must be equal to number of given type hints, otherwise don't know which mode refers to which parameter
-        raise ValueError("Error in KFS::typecheck::check(...): Number of given modes does not match number of used type hints.")
+        raise ValueError(f"Error in KFS::typecheck::check(...): Number of given modes ({len(modes)}) does not match number of used type hints ({len(type_hints)}).")
 
     
     for i, parameter in enumerate(type_hints):  #loop through all type hints and check whether parameter has correct type

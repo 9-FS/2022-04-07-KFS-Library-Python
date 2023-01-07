@@ -1,9 +1,9 @@
 import math
-from . import typecheck
+from . import types
 
 
 def round_sig(x: float, significants: int) -> int: #round to significant number, returns number not string
-    typecheck.check(round_sig, locals(), typecheck.Mode.convertable, typecheck.Mode.instance)
+    types.check(round_sig, locals(), types.Mode.convertable, types.Mode.instance)
     x=float(x)
 
     if x==0:

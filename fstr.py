@@ -1,10 +1,10 @@
 import math
 from . import math as KFSmath   #for round_sig, must "as KFSmath" because otherwise name conflict with math
-from . import typecheck
+from . import types
 
 
 def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #converts to notation technical as string
-    typecheck.check(notation_tech, locals(), typecheck.Mode.convertable, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance)
+    types.check(notation_tech, locals(), types.Mode.convertable, types.Mode.instance, types.Mode.instance, types.Mode.instance, types.Mode.instance)
     x=float(x)
 
 
