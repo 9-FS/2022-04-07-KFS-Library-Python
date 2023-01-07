@@ -12,7 +12,6 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str, if_success_d
     conversion_failures_filepath=[] #conversion failures
     PDF=[]                          #images converted for saving as pdf
     success=True                    #conversion successful?
-
     
     types.check(convert_images_to_PDF, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.instance)
     images_filepath=list(images_filepath)
@@ -82,7 +81,6 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str, if_success_d
 
 def download_image_default(image_URL: str, image_filepath: str) -> None:    #from URL download image with requests, save in filepath, default worker for download_images(...)
     image=None  #image downloaded
-
     
     types.check(download_image_default, locals(), types.Mode.instance, types.Mode.instance)
 
@@ -104,7 +102,6 @@ def download_images(images_URL: list, images_filepath: list,
                     worker_function: typing.Callable=download_image_default, **kwargs) -> None:  #download images from URL list, save as specified in filepath
     images_downloaded=0 #how many images already downloaded counter
     threads=[]          #worker threads for download
-    
     
     types.check(download_images, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.instance, types.Mode.whatever)
     
@@ -142,7 +139,6 @@ async def download_images_async(images_URL: list, images_filepath: list,
                                 worker_function: typing.Callable=download_image_default, **kwargs) -> None: #download images from URL list, save as specified in filepath
     images_downloaded=0 #how many images already downloaded counter
     tasks=[]            #worker tasks for download
-    
     
     types.check(download_images_async, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.whatever)
     

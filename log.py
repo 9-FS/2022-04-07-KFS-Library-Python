@@ -28,7 +28,6 @@ def write(text: str,
     timestamp_in_file=""            #add timestamp in log file ("none", "just spaces", "full")
     timestamp_new=""                #timestamp current, only use with mode "full"
 
-
     types.check(write, locals(), types.Mode.convertable, types.Mode.instance, types.Mode.instance, types.Mode.instance, types.Mode.instance)
     text=str(text)
 
