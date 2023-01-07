@@ -1,16 +1,16 @@
 import datetime as dt
-import math                 #floor
+import math             #floor
 import os
-from threading import Lock  #mutex
-import typing               #type hints
-from . import fstr          #notation technical
-from . import typecheck     #typecheck
+import threading        #mutex
+import typing           #type hints
+from . import fstr      #notation technical
+from . import types     #typecheck
 
 
 line_last_len=0                 #line previous length, if override desired
 timestamp_old=""                #timestamp previously used
 timestamp_old_line_previous=""  #timestamp previously  used on line previous
-write_mutex=Lock()              #make everything thread safe
+write_mutex=threading.Lock()    #make everything thread safe
 
 
 def write(text: str,
@@ -29,7 +29,7 @@ def write(text: str,
     timestamp_new=""                #timestamp current, only use with mode "full"
 
 
-    typecheck.check(write, locals(), typecheck.Mode.convertable, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance, typecheck.Mode.instance)
+    types.check(write, locals(), types.Mode.convertable, types.Mode.instance, types.Mode.instance, types.Mode.instance, types.Mode.instance)
     text=str(text)
 
 
@@ -142,6 +142,47 @@ def timeit(f: T) -> T:                          #decorates function with "Execut
         try:
             y=f(*args, **kwargs)    #execute function to decorate
         except:                     #crashes
+            t1=dt.datetime.now(dt.timezone.utc)
+            execution_time=(t1-t0).total_seconds()
+            write(f"Tried to execute {function_signature}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s.")
+            raise   #forward exception
+               
+        t1=dt.datetime.now(dt.timezone.utc)
+        execution_time=(t1-t0).total_seconds()
+        write(f"Executed {function_signature}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s.")
+        
+        return y
+    
+    return typing.cast(T, function_new)
+
+
+T=typing.TypeVar("T", bound=typing.Callable)    #pass type hints through decorator, so static type checkers in IDE still work
+def timeit_async(f: T) -> T:                    #decorates async function with "Executing...", "Executed, took t seconds"
+    async def function_new(*args, **kwargs):    #function modified to return
+        function_signature=""                   #function(parameters)
+        y=None                                  #function return value
+
+
+        function_signature=f"{f.__name__}("     #function(
+        
+        for i, arg in enumerate(args):          #paramters unnamed args
+            function_signature+=str(arg)
+            if i<len(args)-1 or 0<len(kwargs):
+                function_signature+=", "
+        
+        for i, kwarg in enumerate(kwargs):      #parameters named kwargs
+            function_signature+=f"{kwarg}={str(kwargs[kwarg])}"
+            if i<len(kwargs)-1:
+                function_signature+=", "
+        
+        function_signature+=")"
+        
+
+        write(f"Executing {function_signature}...")
+        t0=dt.datetime.now(dt.timezone.utc)
+        try:
+            y=await f(*args, **kwargs)  #execute function to decorate
+        except:                         #crashes
             t1=dt.datetime.now(dt.timezone.utc)
             execution_time=(t1-t0).total_seconds()
             write(f"Tried to execute {function_signature}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s.")
