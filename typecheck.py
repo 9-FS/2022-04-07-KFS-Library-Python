@@ -43,7 +43,7 @@ def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:  #TODO typech
         elif modes[i]==Mode.convertable:                    #if mode conversion:
             try:
                 type_hints[parameter](locals[parameter])    #try conversion from parameter type to type hint type
-            except ValueError:
+            except (TypeError, ValueError):
                 raise TypeError(f"Error in {f.__name__}{inspect.signature(f)}: {parameter} must be convertable to type {type_hints[parameter]}, but {type(locals[parameter])}={locals[parameter]} was given.")
         
         elif modes[i]==Mode.whatever:   #if mode whatever: ignore
