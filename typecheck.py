@@ -10,7 +10,7 @@ class Mode(Enum):   #type check modes
     whatever=3      #argument type does not matter
 
 
-def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:  #TODO typecheck nested types; TODO make compatible with decorators
+def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:
     if isinstance(f, typing.Callable)==False:
         raise ValueError("Error in KFS::typecheck::check(...): Argument f must be callable, use your local function.")
     if isinstance(locals, dict)==False:
@@ -52,3 +52,7 @@ def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:  #TODO typech
             raise RuntimeError("Error in KFS::typecheck::check(...): Unknown mode.")
     
     return
+
+#TODO typecheck nested types
+#TODO make compatible with decorators
+#TODO inspect contents of *args **kwargs
