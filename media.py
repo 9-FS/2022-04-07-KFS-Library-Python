@@ -15,6 +15,7 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str, if_success_d
     
     types.check(convert_images_to_PDF, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.instance)
     images_filepath=list(images_filepath)
+    PDF_filepath=str(PDF_filepath)
     
 
     PIL.ImageFile.LOAD_TRUNCATED_IMAGES=True    #set true or raises unnecessary exception sometimes
@@ -104,7 +105,9 @@ def download_images(images_URL: list, images_filepath: list,
     threads=[]          #worker threads for download
     
     types.check(download_images, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.instance, types.Mode.whatever)
-    
+    images_URL=list(images_URL)
+    images_filepath=list(images_filepath)
+
 
     if len(images_URL)!=len(images_filepath):   #check if every image to download has exactly 1 filepath to save to
         raise ValueError("Error in KFS::media::download_images(...): Length of images_URL and images_filepath must be the same.")
@@ -141,6 +144,8 @@ async def download_images_async(images_URL: list, images_filepath: list,
     tasks=[]            #worker tasks for download
     
     types.check(download_images_async, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.whatever)
+    images_URL=list(images_URL)
+    images_filepath=list(images_filepath)
     
 
     if len(images_URL)!=len(images_filepath):   #check if every image to download has exactly 1 filepath to save to
