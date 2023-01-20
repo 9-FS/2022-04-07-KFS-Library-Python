@@ -5,10 +5,10 @@ import os
 import requests
 import time
 import typing                           #function type hint
-from . import log, types
+from . import exceptions, log, types
 
 
-def convert_images_to_PDF(images_filepath: list, PDF_filepath: str, if_success_delete_images: bool=False) -> list:  #convert list[str] with image filepaths to PDF, return conversion failures
+def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=False) -> list:   #convert list[str] with image filepaths to PDF, return PDF
     conversion_failures_filepath=[] #conversion failures
     PDF=[]                          #images converted for saving as pdf
     success=True                    #conversion successful?
@@ -56,7 +56,7 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str, if_success_d
             log.write(f"\rConverted {image_filepath} to PDF.")
 
     
-    if success==True:   #if successful: save PDF
+    if success==True and PDF_filepath!="":   #if successful and filepath given: save PDF
         log.write("\rConverted images to PDF.")
         log.write(f"Saving {PDF_filepath}...")
         PDF[0].save(PDF_filepath, save_all=True, append_images=PDF[1:])
@@ -64,7 +64,6 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str, if_success_d
     else:
         log.write(f"Converting to PDF failed, because 1 or more images could not be converted to PDF. Not saving any PDF.")
 
-    
     if success==True and if_success_delete_images==True:    #try to delete all source images if desired
         log.write(f"Deleting images...")
         for image_filepath in images_filepath:
@@ -76,8 +75,11 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str, if_success_d
                 log.write(f"\rDeleted {image_filepath}")
         log.write("\rDeleted images.")
 
+    if success==False:  #if unsuccessful: throw exception with failure list
+        raise exceptions.ConversionError(conversion_failures_filepath)
 
-    return conversion_failures_filepath
+
+    return PDF  #return PDF in case needed internally
 
 
 def download_image_default(image_URL: str, image_filepath: str) -> None:    #from URL download image with requests, save in filepath, default worker for download_images(...)
@@ -91,7 +93,6 @@ def download_image_default(image_URL: str, image_filepath: str) -> None:    #fro
         raise requests.HTTPError(page)
     image=page.content
 
-    os.makedirs(os.path.dirname(image_filepath), exist_ok=True) #create necessary folders for image file
     with open(image_filepath, "wb") as image_file:  #save image
         image_file.write(image)
 
@@ -118,6 +119,8 @@ def download_images(images_URL: list, images_filepath: list,
         for i in range(len(images_URL)):                    #download missing images and save as specified
             if os.path.isfile(images_filepath[i])==True:    #if image already exists: skip
                 continue
+            else:
+                os.makedirs(os.path.dirname(images_filepath[i]), exist_ok=True) #create necessary folders for image file
             
             if multithreading==True:
                 threads.append(thread_manager.submit(worker_function, image_URL=images_URL[i], image_filepath=images_filepath[i], **kwargs)) #download and save image in worker thread
