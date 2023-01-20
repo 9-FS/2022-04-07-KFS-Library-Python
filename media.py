@@ -5,7 +5,7 @@ import os
 import requests
 import time
 import typing                           #function type hint
-from . import exceptions, log, types
+from . import exceptions, fstr, log, types
 
 
 def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=False) -> list:   #convert list[str] with image filepaths to PDF, return PDF
@@ -125,8 +125,8 @@ def download_images(images_URL: list, images_filepath: list,
             if multithreading==True:
                 threads.append(thread_manager.submit(worker_function, image_URL=images_URL[i], image_filepath=images_filepath[i], **kwargs)) #download and save image in worker thread
             else:
-                worker_function(image_URL=images_URL[i], image_filepath=images_filepath[i], **kwargs)   #no *args so user is forced to accept image_URL and image_filepath and no confusion ensues because of unexpected parameter passing
-                log.write(f"\rDownloaded image {i+1:,.0f}/{len(images_URL):,.0f}. ".replace(",", ".")+f"({images_URL[i]})") #refresh images downloaded display
+                worker_function(image_URL=images_URL[i], image_filepath=images_filepath[i], **kwargs)       #no *args so user is forced to accept image_URL and image_filepath and no confusion ensues because of unexpected parameter passing
+                log.write(f"\rDownloaded image {fstr.notation_abs(i+1, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}. "+f"({images_URL[i]})") #refresh images downloaded display
 
         while _all_threads_done(threads)==False:                        #progess display in multithreaded mode, as long as threads still running:
             images_downloaded_new=_images_downloaded(images_filepath)   #how many images already downloaded
@@ -135,9 +135,9 @@ def download_images(images_URL: list, images_filepath: list,
                 continue
             
             images_downloaded=images_downloaded_new   #refresh images downloaded
-            log.write(f"\rDownloaded image {images_downloaded:,.0f}/{len(images_URL):,.0f}.".replace(",", "."))
+            log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
         images_downloaded=_images_downloaded(images_filepath)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed
-        log.write(f"\rDownloaded image {images_downloaded:,.0f}/{len(images_URL):,.0f}.".replace(",", "."))
+        log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
 
     return
 
@@ -170,9 +170,9 @@ async def download_images_async(images_URL: list, images_filepath: list,
                 continue
             
             images_downloaded=images_downloaded_new   #refresh images downloaded
-            log.write(f"\rDownloaded image {images_downloaded:,.0f}/{len(images_URL):,.0f}.".replace(",", "."))
+            log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
         images_downloaded=_images_downloaded(images_filepath)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed
-        log.write(f"\rDownloaded image {images_downloaded:,.0f}/{len(images_URL):,.0f}.".replace(",", "."))
+        log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
 
     return
     

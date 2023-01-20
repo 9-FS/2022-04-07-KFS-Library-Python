@@ -33,7 +33,9 @@ def notation_abs(x: float, precision: int, round_static: bool=False, trailing_ze
         if x[-1]==",":                      #if because of that last character comma:
             x=x[:-1]                        #remove comma
 
+
     return x
+
 
 def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #converts to notation technical as string
     types.check(notation_tech, locals(), types.Mode.convertable, types.Mode.instance, types.Mode.instance, types.Mode.instance, types.Mode.instance)
