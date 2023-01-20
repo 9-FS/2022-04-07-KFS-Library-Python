@@ -1,13 +1,13 @@
-from enum import Enum
+import enum
 import inspect
 import typing
 
 
-class Mode(Enum):   #type check modes
-    strict=0        #argument type must be like type hint
-    instance=1      #argument type must be instance (like type hint or inherited), default
-    convertable=2   #argument type must be convertable to type hint type
-    whatever=3      #argument type does not matter
+class Mode(enum.Enum):  #type check modes
+    strict=0            #argument type must be like type hint
+    instance=1          #argument type must be instance (like type hint or inherited), default
+    convertable=2       #argument type must be convertable to type hint type
+    whatever=3          #argument type does not matter
 
 
 def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:
