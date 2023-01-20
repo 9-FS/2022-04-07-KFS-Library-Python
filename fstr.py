@@ -7,17 +7,20 @@ def notation_tech(x: float, precision: int, round_static: bool=False, trailing_z
     types.check(notation_tech, locals(), types.Mode.convertable, types.Mode.instance, types.Mode.instance, types.Mode.instance, types.Mode.instance)
     x=float(x)
 
-
-    if x!=0:
+    
+    if round_static==False:
+        x=KFSmath.round_sig(x, precision)           #round to signifcant number
+    else:
+        x=round(x, precision)                       #round to decimal place static
+        
+    if x!=0:                                        #determine magnitude after rounding in case rounding changes magnitude
         magnitude=math.floor(math.log10(abs(x)))    #x magnitude floored
     else:
         magnitude=0                                 #for number 0 magnitude 0 practical for decimal prefix
     
     if round_static==False:
-        x=KFSmath.round_sig(x, precision)           #round to signifcant number
         dec_places=magnitude%3*-1+precision-1       #decimal places required
     else:
-        x=round(x, precision)                       #round to decimal place static
         dec_places=magnitude-magnitude%3+precision  #decimal places required
     if dec_places<0:                                #at least 0 decimal places
         dec_places=0
