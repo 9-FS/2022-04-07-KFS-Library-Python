@@ -8,7 +8,7 @@ import typing                           #function type hint
 from . import exceptions, fstr, log, types
 
 
-def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=False) -> list:   #convert list[str] with image filepaths to PDF, return PDF
+def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=False) -> list:   #convert list[str] with image filepaths to PDF, return PDF, upon failure exception will contain failure list
     conversion_failures_filepath=[] #conversion failures
     PDF=[]                          #images converted for saving as pdf
     success=True                    #conversion successful?
@@ -101,7 +101,7 @@ def download_image_default(image_URL: str, image_filepath: str) -> None:    #fro
 
 def download_images(images_URL: list, images_filepath: list,
                     multithreading: bool=True,
-                    worker_function: typing.Callable=download_image_default, **kwargs) -> None:  #download images from URL list, save as specified in filepath
+                    worker_function: typing.Callable=download_image_default, **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
     images_downloaded=0 #how many images already downloaded counter
     threads=[]          #worker threads for download
     
@@ -142,7 +142,7 @@ def download_images(images_URL: list, images_filepath: list,
     return
 
 async def download_images_async(images_URL: list, images_filepath: list,
-                                worker_function: typing.Callable=download_image_default, **kwargs) -> None: #download images from URL list, save as specified in filepath
+                                worker_function: typing.Callable=download_image_default, **kwargs) -> None: #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
     images_downloaded=0 #how many images already downloaded counter
     tasks=[]            #worker tasks for download
     
