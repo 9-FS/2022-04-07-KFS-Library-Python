@@ -6,8 +6,14 @@ from . import types
 def create_dbx(dropbox_API_token_filepath: str="./dropbox_API_token.txt"):  #create dbx instance with saved API token
     types.check(create_dbx, locals(), types.Mode.instance)
     
-    with open(dropbox_API_token_filepath, "rt") as dropbox_API_token_file:
-        dropbox_API_token=dropbox_API_token_file.read() #read API access token
+    try:
+        with open(dropbox_API_token_filepath, "rt") as dropbox_API_token_file:
+            dropbox_API_token=dropbox_API_token_file.read() #read API access token
+    except FileNotFoundError:   #if token file does not exist yet: create empty for user to paste token into
+        os.makedirs(os.path.dirname(dropbox_API_token_filepath), exist_ok=True) #create folders
+        open(dropbox_API_token_filepath, "wt")                                  #create file
+        raise FileNotFoundError(f"Error in KFS::dropbox::create_dbx(...): Given filepath for dropbox API token does not exist yet. Created empty {dropbox_API_token_filepath} for you to paste the dropbox API token into.")
+
     dbx=dropbox.Dropbox(dropbox_API_token)  #create dropbox instance
     return dbx
 
