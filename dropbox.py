@@ -8,11 +8,11 @@ def create_dbx(dropbox_API_token_filepath: str="./dropbox_API_token.txt"):  #cre
     
     try:
         with open(dropbox_API_token_filepath, "rt") as dropbox_API_token_file:
-            dropbox_API_token=dropbox_API_token_file.read() #read API access token
-    except FileNotFoundError:   #if token file does not exist yet: create empty for user to paste token into
+            dropbox_API_token=dropbox_API_token_file.read()                     #read API access token
+    except FileNotFoundError:                                                   #if token file does not exist yet: create empty for user to paste token into
         log.write(f"Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Creating empty file...")
         os.makedirs(os.path.dirname(dropbox_API_token_filepath), exist_ok=True) #create folders
-        open(dropbox_API_token_filepath, "wt")                                  #create file
+        open(dropbox_API_token_filepath, "wt")                                  #create empty file
         log.write(f"\rDropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
         raise FileNotFoundError(f"Error in KFS::dropbox::create_dbx(...): Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
 
