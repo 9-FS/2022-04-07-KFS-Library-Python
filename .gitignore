@@ -1,0 +1,7 @@
+*.bat
+*.exe
+*.pyc
+test.py
+/__pycache__/
+/Log/
+/KFS Library Venv/
