@@ -1,5 +1,7 @@
 import dropbox
 import os
+import requests
+import time
 from . import log, types
 
 
@@ -25,14 +27,19 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list: #list
     file_names=[]   #file names to return
 
     types.check(list_files, locals(), types.Mode.instance, types.Mode.instance)
-
-    try:
-        result=dbx.files_list_folder(dir)  #read first batch of file names
-    except dropbox.exceptions.ApiError:
-        if not_exist_ok==True:  #if folder not existing is ok:
-            return []           #return empty list
-        else:                   #otherwise forward dropbox exception
-            raise
+    while True:
+        try:
+            result=dbx.files_list_folder(dir)   #read first batch of file names
+        except dropbox.exceptions.ApiError:     #folder does not exist
+            if not_exist_ok==True:              #if folder not existing is ok:
+                return []                       #return empty list
+            else:                               #otherwise forward dropbox exception
+                raise
+        except requests.exceptions.ConnectionError: #connection unexpectedly failed: try again
+            time.sleep(1)
+            continue
+        else:
+            break
 
     file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] #append file names, exclude all non-files
 
