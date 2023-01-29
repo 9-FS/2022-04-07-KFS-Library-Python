@@ -1,13 +1,24 @@
 import dropbox
 import os
-from . import types
+import requests
+import time
+from . import log, types
 
 
 def create_dbx(dropbox_API_token_filepath: str="./dropbox_API_token.txt"):  #create dbx instance with saved API token
     types.check(create_dbx, locals(), types.Mode.instance)
     
-    with open(dropbox_API_token_filepath, "rt") as dropbox_API_token_file:
-        dropbox_API_token=dropbox_API_token_file.read() #read API access token
+    try:
+        with open(dropbox_API_token_filepath, "rt") as dropbox_API_token_file:
+            dropbox_API_token=dropbox_API_token_file.read()                         #read API access token
+    except FileNotFoundError:                                                       #if token file does not exist yet: create empty for user to paste token into
+        log.write(f"Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Creating empty file...")
+        if os.path.dirname(dropbox_API_token_filepath)!="":
+            os.makedirs(os.path.dirname(dropbox_API_token_filepath), exist_ok=True) #create folders
+        open(dropbox_API_token_filepath, "wt")                                      #create empty file
+        log.write(f"\rDropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
+        raise FileNotFoundError(f"Error in KFS::dropbox::create_dbx(...): Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
+
     dbx=dropbox.Dropbox(dropbox_API_token)  #create dropbox instance
     return dbx
 
@@ -16,14 +27,19 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list: #list
     file_names=[]   #file names to return
 
     types.check(list_files, locals(), types.Mode.instance, types.Mode.instance)
-
-    try:
-        result=dbx.files_list_folder(dir)  #read first batch of file names
-    except dropbox.exceptions.ApiError:
-        if not_exist_ok==True:  #if folder not existing is ok:
-            return []           #return empty list
-        else:                   #otherwise forward dropbox exception
-            raise
+    while True:
+        try:
+            result=dbx.files_list_folder(dir)   #read first batch of file names
+        except dropbox.exceptions.ApiError:     #folder does not exist
+            if not_exist_ok==True:              #if folder not existing is ok:
+                return []                       #return empty list
+            else:                               #otherwise forward dropbox exception
+                raise
+        except requests.exceptions.ConnectionError: #connection unexpectedly failed: try again
+            time.sleep(1)
+            continue
+        else:
+            break
 
     file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] #append file names, exclude all non-files
 
