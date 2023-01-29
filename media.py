@@ -141,37 +141,37 @@ def download_images(images_URL: list, images_filepath: list,
 
     return
 
-async def download_images_async(images_URL: list, images_filepath: list,
+async def download_images_async(images_URL: list, images_filepaths: list,
                                 worker_function: typing.Callable=download_image_default, **kwargs) -> None: #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
     images_downloaded=0 #how many images already downloaded counter
     tasks=[]            #worker tasks for download
     
     types.check(download_images_async, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.whatever)
     images_URL=list(images_URL)
-    images_filepath=list(images_filepath)
+    images_filepaths=list(images_filepaths)
     
 
-    if len(images_URL)!=len(images_filepath):   #check if every image to download has exactly 1 filepath to save to
+    if len(images_URL)!=len(images_filepaths):  #check if every image to download has exactly 1 filepath to save to
         raise ValueError("Error in KFS::media::download_images_async(...): Length of images_URL and images_filepath must be the same.")
 
 
     log.write(f"Downloading images...")
     async with asyncio.TaskGroup() as task_manager: 
         for i in range(len(images_URL)):                    #download missing images and save as specified
-            if os.path.isfile(images_filepath[i])==True:    #if image already exists: skip
+            if os.path.isfile(images_filepaths[i])==True:   #if image already exists: skip
                 continue
             
-            tasks.append(task_manager.create_task(worker_function(image_URL=images_URL[i], image_filepath=images_filepath[i], **kwargs)))   #no *args so user is forced to accept image_URL and image_filepath and no confusion ensues because of unexpected parameter passing
+            tasks.append(task_manager.create_task(worker_function(image_URL=images_URL[i], image_filepath=images_filepaths[i], **kwargs)))   #no *args so user is forced to accept image_URL and image_filepath and no confusion ensues because of unexpected parameter passing
 
         while await _all_tasks_done(tasks)==False:                      #progess display in multithreaded mode, as long as threads still running:
-            images_downloaded_new=_images_downloaded(images_filepath)   #how many images already downloaded
+            images_downloaded_new=_images_downloaded(images_filepaths)  #how many images already downloaded
             if(images_downloaded==images_downloaded_new):               #if number hasn't changed: don't write on console
                 await asyncio.sleep(0.1)                                #release lock so worker get ressources too
                 continue
             
             images_downloaded=images_downloaded_new   #refresh images downloaded
             log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
-        images_downloaded=_images_downloaded(images_filepath)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed
+        images_downloaded=_images_downloaded(images_filepaths)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed
         log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
 
     return
@@ -193,11 +193,11 @@ def _all_threads_done(threads: list) -> bool:   #takes list of threads and looks
     return True
 
 
-def _images_downloaded(images_filepath: list) -> int:   #takes list of image filepaths and counts how many exist already
+def _images_downloaded(images_filepaths: list) -> int:  #takes list of image filepaths and counts how many exist already
     count=0
 
 
-    for image_filepath in images_filepath:
+    for image_filepath in images_filepaths:
         if os.path.isfile(image_filepath)==True:    #if image already exists: inkrement count
             count+=1
     
