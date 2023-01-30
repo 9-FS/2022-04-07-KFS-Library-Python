@@ -65,7 +65,14 @@ def upload_file(dbx: dropbox.Dropbox, source_filepath: str, destination_filepath
             dbx.files_upload(file.read(), destination_filepath, dropbox.files.WriteMode.overwrite)
             return  #job done
         
-        upload_session_start_result=dbx.files_upload_session_start(file.read(CHUNK_SIZE))    #if file larger: start upload session
+        while True:
+            try:
+                upload_session_start_result=dbx.files_upload_session_start(file.read(CHUNK_SIZE))    #if file larger: start upload session
+            except requests.exceptions.SSLError:    #if SSLError because max retries exceeded or something: retry lol
+                time.sleep(1)
+                continue
+            else:
+                break
         cursor=dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=file.tell())
         commit=dropbox.files.CommitInfo(path=destination_filepath)
         
