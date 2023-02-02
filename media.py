@@ -101,7 +101,8 @@ def download_image_default(image_URL: str, image_filepath: str) -> None:    #fro
 
 def download_images(images_URL: list, images_filepath: list,
                     multithreading: bool=True,
-                    worker_function: typing.Callable=download_image_default, **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
+                    worker_function: typing.Callable=download_image_default, workers_max=None,
+                    **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
     images_downloaded=0 #how many images already downloaded counter
     threads=[]          #worker threads for download
     
@@ -115,7 +116,7 @@ def download_images(images_URL: list, images_filepath: list,
 
 
     log.write(f"Downloading images...")
-    with concurrent.futures.ThreadPoolExecutor() as thread_manager:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers_max) as thread_manager:
         for i in range(len(images_URL)):                    #download missing images and save as specified
             if os.path.isfile(images_filepath[i])==True:    #if image already exists: skip
                 continue
@@ -133,7 +134,6 @@ def download_images(images_URL: list, images_filepath: list,
             if(images_downloaded==images_downloaded_new):               #if number hasn't changed: don't write on console
                 time.sleep(0.1)
                 continue
-            
             images_downloaded=images_downloaded_new   #refresh images downloaded
             log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
         images_downloaded=_images_downloaded(images_filepath)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed
@@ -142,7 +142,8 @@ def download_images(images_URL: list, images_filepath: list,
     return
 
 async def download_images_async(images_URL: list, images_filepaths: list,
-                                worker_function: typing.Callable=download_image_default, **kwargs) -> None: #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
+                                worker_function: typing.Callable=download_image_default,
+                                **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
     images_downloaded=0 #how many images already downloaded counter
     tasks=[]            #worker tasks for download
     
@@ -154,7 +155,7 @@ async def download_images_async(images_URL: list, images_filepaths: list,
     if len(images_URL)!=len(images_filepaths):  #check if every image to download has exactly 1 filepath to save to
         raise ValueError("Error in KFS::media::download_images_async(...): Length of images_URL and images_filepath must be the same.")
 
-
+    
     log.write(f"Downloading images...")
     async with asyncio.TaskGroup() as task_manager: 
         for i in range(len(images_URL)):                    #download missing images and save as specified
@@ -168,7 +169,6 @@ async def download_images_async(images_URL: list, images_filepaths: list,
             if(images_downloaded==images_downloaded_new):               #if number hasn't changed: don't write on console
                 await asyncio.sleep(0.1)                                #release lock so worker get ressources too
                 continue
-            
             images_downloaded=images_downloaded_new   #refresh images downloaded
             log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
         images_downloaded=_images_downloaded(images_filepaths)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed

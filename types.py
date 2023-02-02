@@ -54,5 +54,6 @@ def check(f: typing.Callable, locals: dict, *modes: Mode) -> None:
     return
 
 #TODO typecheck nested types
+#TODO typecheck types with logical or inbetween like "int|None"
 #TODO make compatible with decorators
 #TODO inspect contents of *args **kwargs
