@@ -1,10 +1,9 @@
 import datetime as dt
-import math             #floor
+import math                 #floor
 import os
-import threading        #mutex
-import typing           #type hints
-from . import fstr      #notation technical
-from . import types     #typecheck
+import threading            #mutex
+import typing               #type hints
+from . import fstr, types   #notation technical, typecheck
 
 
 line_last_len=0                 #line previous length, if override desired

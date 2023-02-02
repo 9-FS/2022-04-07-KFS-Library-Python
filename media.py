@@ -8,7 +8,7 @@ import typing                           #function type hint
 from . import exceptions, fstr, log, types
 
 
-def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=False) -> list:   #convert list[str] with image filepaths to PDF, return PDF, upon failure exception will contain failure list
+def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=True) -> list:    #convert list[str] with image filepaths to PDF, return PDF, upon failure exception will contain failure list
     conversion_failures_filepath=[] #conversion failures
     PDF=[]                          #images converted for saving as pdf
     success=True                    #conversion successful?
@@ -198,7 +198,7 @@ def _images_downloaded(images_filepaths: list) -> int:  #takes list of image fil
 
 
     for image_filepath in images_filepaths:
-        if os.path.isfile(image_filepath)==True:    #if image already exists: inkrement count
+        if os.path.isfile(image_filepath)==True:    #if image already exists: increment count
             count+=1
     
     return count
