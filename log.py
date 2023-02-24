@@ -6,6 +6,7 @@ import inspect                      #exception message with function header
 import logging, logging.handlers    #standard logging
 import math                         #math.ceil
 import os
+import sys                          #current system for colour enabling on windows
 import typing                       #type hints
 from . import fstr #notation technical
 
@@ -79,7 +80,8 @@ class _Console_File_Formatter(logging.Formatter):
             logging.ERROR:    colorama.Back.RED+colorama.Fore.BLACK,
             logging.CRITICAL: colorama.Back.RED+colorama.Fore.WHITE+colorama.Style.BRIGHT
         }
-        colorama.just_fix_windows_console() #enable colours on windows console
+        if sys.platform=="win32" or sys.platform=="cygwin": #if windows:
+            colorama.just_fix_windows_console()             #enable colours on windows console
         return format.replace("%(levelname)s", LEVEL_COLOURS[logging_level]+"%(levelname)s"+colorama.Style.RESET_ALL)
 
 
