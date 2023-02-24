@@ -1,153 +1,197 @@
-import datetime as dt
-import math                 #floor
+import colorama                     #coloured logging levels
+import copy                         #deep copy
+import datetime as dt               #datetime
+import enum                         #enum
+import inspect                      #exception message with function header
+import logging, logging.handlers    #standard logging
 import os
-import threading            #mutex
-import typing               #type hints
-from . import fstr, types   #notation technical, typecheck
+import typing                       #type hints
+from . import fstr #notation technical
 
 
-line_last_len=0                 #line previous length, if override desired
-timestamp_old=""                #timestamp previously used
-timestamp_old_line_previous=""  #timestamp previously  used on line previous
-write_mutex=threading.Lock()    #make everything thread safe
+def setup_logging(name: str="", logging_level: int=logging.INFO, message_format: str="[%(asctime)s] %(levelname)s: %(message)s", timestamp_format: str="%Y-%m-%dT%H:%M:%S") -> logging.Logger:
+    """
+    Setup logging to console and log file.
+    - Timestamps are only printed if they changed from timestamp of previous line.
+    - Messages with linebreaks are properly indented.
+    - "\\r" at the beginning of a message overwrites line in console.
+    - Logging levels are colour-coded.
+    - Log files have have a custom name format depending on the current date.
+    """
 
-
-def write(text: str,
-          append_to_line_current: bool=False,
-          UNIX_time: bool=False,
-          write_on_console: bool=True,
-          write_in_file: bool=True) -> None:    #writes log
-    global line_last_len
-    global timestamp_old
-    global timestamp_old_line_previous
-    newline_replacement="\n"        #what should replace normal linebreaks? linebreak + indentation
-    overwrite_line_current=False    #overwrite line previously written?
-    timestamp=""                    #timestamp in front of log entry, either timestamp or spaces if timestamp would be same as previous
-    timestamp_in_console=""         #add timestamp in console log ("none", "just spaces", "full")
-    timestamp_in_file=""            #add timestamp in log file ("none", "just spaces", "full")
-    timestamp_new=""                #timestamp current, only use with mode "full"
-
-    types.check(write, locals(), types.Mode.convertable, types.Mode.instance, types.Mode.instance, types.Mode.instance, types.Mode.instance)
-    text=str(text)
-
-
-    DT_now=dt.datetime.now(dt.timezone.utc)                                         #datetime now
-    if UNIX_time==False:                                                            #if not unix time:
-        timestamp_new=f"[{DT_now.strftime('%Y-%m-%dT%H:%M:%SZ')}]"                  #timestamp new according ISO8601
-    else:
-        timestamp_new=f"[{math.floor(DT_now.timestamp()):,.0f}]".replace(",", ".")  #timestamp new in unix time
+    logger=logging.getLogger(name)  #create logger with name
+    logger.setLevel(logging_level)  #set logging level
     
-    os.makedirs("./Log/", exist_ok=True)    #create log folder
+    console_handler=logging.StreamHandler()
+    console_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.console, message_format, datefmt=timestamp_format))
+    console_handler.terminator=""       #no automatic newline at the end, custom formatter handles newlines
+    logger.addHandler(console_handler)
 
-    with write_mutex:                   #from now on lock other threads out because now working with variables global
-        if text[0:1]=="\r":             #if character [0] carriage return: clear and overwrite line previous
-            overwrite_line_current=True #overwrite
-            if write_on_console==True:
-                print("\r", end="", flush=True)
-                for i in range(math.ceil(line_last_len/100)):
-                    print("                                                                                                    ", end="")
-            text=text[1:]               #remove carriage return
+    file_handler=_TimedFileHandler(f"./Log/%Y-%m-%d Log.txt", when="midnight", utc=True)
+    file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.file, message_format, datefmt=timestamp_format))
+    file_handler.terminator=""          #no automatic newline at the end, custom formatter handles newlines
+    logger.addHandler(file_handler)
+    
+    return logger   #return logger in case needed
 
-        for i in range(len(timestamp_new)+1):           #add indentation
-            newline_replacement+=" " 
-        text=text.replace("\n", newline_replacement)    #replace all linebreaks with linebreaks + indentation
 
-        line_last_len=len(timestamp_new)+1+len(text)    #memorise line length for clean possible override later
-        
-        if overwrite_line_current==False and append_to_line_current==False and timestamp_old!="":   #if line new:
-            timestamp_old_line_previous=timestamp_old                                               #update timestamp to line previous
-        if timestamp_old_line_previous!=timestamp_new:  #if timestamp different than from line previous:
-            timestamp_in_console="full"                 #in console show timestamp
-        else:                                           #if timestamp equal to line previous
-            timestamp_in_console="just spaces"          #no timestamp, only indentation
-        if timestamp_old!=timestamp_new:        #if timestamp different than before:
-            timestamp_in_file="full"            #in logfile write timestamp
-        else:                                   #if timestamp equal to before:
-            timestamp_in_file="just spaces"     #no timestamp, only indentation
+class _Console_File_Formatter(logging.Formatter):
+    """
+    Formats logging.LogRecord to my personal preferences.
+    - Timestamps are only printed if they changed from timestamp of previous line.
+    - Messages with linebreaks are properly indented.
+    - "\\r" at the beginning of a message overwrites line.
+    - Logging levels are colour-coded.
+    """
 
-        if overwrite_line_current==True:    #if overwrite line current:
-            if write_on_console==True:
-                print("\r", end="")         #in console carriage return
-            if write_in_file==True:
-                with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:    
-                    log_file.write(f"\n")   #but in log file line break
-            timestamp_old=timestamp_new     #update timestamp previous
-        elif append_to_line_current==True:  #if append to line current:
-            timestamp_in_console="none"     #ignore default timestamp settings, never any timestamp, never any indentation
-            timestamp_in_file="none"
-        else:                           #if line new:
-            if write_on_console==True:
-                print("\n", end="")         #in console line break
-            if write_in_file==True:
-                with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
-                    log_file.write(f"\n")   #in log file line break
-            timestamp_old=timestamp_new     #update timestamp previous
+    class Mode(enum.Enum):  #is this a formatter for console or log file?
+        console=enum.auto()
+        file   =enum.auto()
     
 
-        if write_on_console==True:
-            if timestamp_in_console=="full":            #if timestamp desired:
-                timestamp=f"{timestamp_new} "
-            elif timestamp_in_console=="just spaces":   #if indentation desired:
-                for i in range(len(timestamp_old)+1):
-                    timestamp+=" "                      #no timestamp, only indentation
-            elif timestamp_in_console=="none":          #if nothing desired:
-                timestamp=""
-            else:
-                raise RuntimeError(f"Error in KFS::log::write(...): timestamp_in_console has invalid value which should not occur (\"{timestamp_in_console}\").")
-            print(f"{timestamp}{text}", end="", flush=True)
-            timestamp=""    #before determining timestamp for log file: reset
-        
-        if write_in_file==True:
-            if timestamp_in_file=="full":               #if timestamp desired:
-                timestamp=f"{timestamp_new} "
-            elif timestamp_in_file=="just spaces":      #if indentation desired:
-                for i in range(len(timestamp_old)+1):
-                    timestamp+=" "                      #no timestamp, only indentation
-            elif timestamp_in_file=="none":             #if nothing desired:
-                timestamp=""
-            else:
-                raise RuntimeError(f"Error in KFS::log::write(...): timestamp_in_file has invalid value which should not occur (\"{timestamp_in_file}\").")
-            with open(f"./Log/{DT_now.strftime('%Y-%m-%d Log.txt')}", "at", encoding="utf-8") as log_file:
-                log_file.write(f"{timestamp}{text}")
+    def __init__(self, mode: Mode, fmt: str|None=None, datefmt: str|None=None, style: str="%", validate: bool=True, defaults: str|None=None) -> None:
+        self.init_args={    #save arguments to forward to actual logging.Formatter later
+            "mode": mode,
+            "fmt": fmt,
+            "datefmt": datefmt,
+            "style": style,
+            "validate": validate,
+            "defaults": defaults
+        }
 
-    return
+        self.timestamp_previous=""      #timestamp used in previous logging call
+        self.timestamp_previous_line="" #timestamp used in previous line
+        return
+    
+    
+    @staticmethod
+    def _dye_logging_level(format: str, logging_level: int) -> str:
+        """
+        Dyes the logging level part of the format string.
+        """
+        LEVEL_COLOURS={    #which level gets which colour?
+            logging.DEBUG:    colorama.Fore.WHITE,
+            logging.INFO:     colorama.Fore.GREEN,
+            logging.WARNING:  colorama.Fore.YELLOW,
+            logging.ERROR:    colorama.Fore.RED,
+            logging.CRITICAL: colorama.Fore.RED+colorama.Style.BRIGHT
+        }
+        return format.replace("%(levelname)s", LEVEL_COLOURS[logging_level]+"%(levelname)s"+colorama.Style.RESET_ALL)
+
+
+    def format(self, record):
+        """
+        Implements personal preferences by changing message and format. Creates custom formatter, then formats record.
+        """
+
+        overwrite_line_current: bool                                                            #overwrite line previously written?
+        timestamp_current=dt.datetime.now(dt.timezone.utc).strftime(self.init_args["datefmt"])  #timestamp current
+
+        fmt=self.init_args["fmt"]       #get original format
+        record=copy.deepcopy(record)    #deep copy record so changes here don't affect other formatters
+        
+        
+        if self.init_args["mode"]==self.Mode.console:   #if mode console:
+            if record.msg[0:1]=="\r":                   #if record.msg[0] carriage return: prepare everything for overwriting later
+                overwrite_line_current=True             #overwrite line later
+                print("\x1b[K", end="")                 #clear line current, do not flush to avoid flickering
+                fmt=f"\r{fmt}"                          #change format to write carriage return first
+                record.msg=record.msg[1:]               #remove carriage return
+            else:                                       #if writing in new line:
+                overwrite_line_current=False            #don't overwrite line later
+                fmt=f"\n{fmt}"                          #change format to write newline first
+        elif self.init_args["mode"]==self.Mode.file:    #if mode log file:
+            overwrite_line_current=False                #don't overwrite line later
+            fmt=f"\n{fmt}"                              #change format to write newline first
+            if record.msg[0:1]=="\r":
+                record.msg=record.msg[1:]               #remove carriage return
+        else:
+            raise RuntimeError(f"Error in {format.__name__}{inspect.signature(format)}: Invalid formatter mode \"{self.init_args['mode'].name}\".")
+
+        if "\n" in record.msg:          #if newline in message: indent coming lines
+            newline_replacement="\n"    #initialise with newline, add preceding spaces next
+            number_of_spaces=0          #number of spaces needed for indentation
+            
+            number_of_spaces+=len(fmt[1:].split(r"%(message)s", 1)[0].replace(r"%(asctime)s", "").replace(r"%(levelname)s", "")) #static format length without variables, for indentation only consider what is right of beginning \n or \r and left of first %(message)s
+            if r"%(asctime)s" in fmt:                                   #if timestamp in format: determine length
+                number_of_spaces+=len(timestamp_current)
+            if r"%(levelname)s" in fmt:                                 #if logging level in format: determine length
+                number_of_spaces+=len(record.levelname)
+            for i in range(number_of_spaces):                           #add indentation
+                newline_replacement+=" " 
+            record.msg=record.msg.replace("\n", newline_replacement)    #replace all linebreaks with linebreaks + indentation
+
+        if overwrite_line_current==False:                           #if we write in line new:
+            self.timestamp_previous_line=self.timestamp_previous    #update timestamp previous line to timestamp previously used
+
+        if self.timestamp_previous_line==timestamp_current: #if timestamp of line previous same as current: replace timestamp with indentation
+            timestamp_replacement=""
+            for i in range(+len(f"[{self.timestamp_previous_line}]")):
+                timestamp_replacement+=" "
+            fmt=fmt.replace(r"[%(asctime)s]", timestamp_replacement)
+
+        
+        if self.init_args["mode"]==self.Mode.console:
+            fmt=_Console_File_Formatter._dye_logging_level(fmt, record.levelno) #only in console mode dye logging level
+        formatter=logging.Formatter(fmt, self.init_args["datefmt"], self.init_args["style"], self.init_args["validate"]) #create custom formatter 
+        record.msg=formatter.format(record)         #finally format message
+        
+        self.timestamp_previous=timestamp_current   #timestamp current becomes timestamp previously used for next logging call
+        return record.msg                           #return formatted message
+
+class _TimedFileHandler(logging.handlers.TimedRotatingFileHandler):
+    """
+    Instead of having a static baseFilename and then adding suffixes during rotation, this file handler takes a **datetime format filepath** and changes baseFilename according to the given datetime format and the current datetime.
+    Rotating is just redoing this process with the new current datetime.
+    """
+
+    def __init__(self, filepath_format: str, when: str="h", interval: int=1, backupCount: int=0, encoding: str|None=None, delay: bool=False, utc: bool=False, atTime: dt.time|None=None, errors: str|None=None) -> None:
+        os.makedirs(os.path.dirname(filepath_format), exist_ok=True)    #create necessary directories
+        super(_TimedFileHandler, self).__init__(filepath_format, when, interval, backupCount, encoding, delay, utc, atTime, errors) #execute base class constructor
+        self.close()                                                    #base class already opens file with wrong name, close again
+        try:
+            os.remove(self.baseFilename)            #try to remove wrong file
+        except OSError:
+            pass
+        self.baseFilename_format=self.baseFilename  #user argument is interpreted as filepath with datetime format, not static filepath
+        
+        if self.utc==False:
+            self.baseFilename=dt.datetime.now().strftime(self.baseFilename_format)  #set filepath with format and current datetime
+        else:
+            self.baseFilename=dt.datetime.now(dt.timezone.utc).strftime(self.baseFilename_format)
+        return
+
+    def rotator(self, source, dest) -> None:    #rotate by setting new self.baseFilename with format and current datetime
+        if self.utc==False:
+            self.baseFilename=dt.datetime.now().strftime(self.baseFilename_format)
+        else:
+            self.baseFilename=dt.datetime.now(dt.timezone.utc).strftime(self.baseFilename_format)
+        return
 
 
 T=typing.TypeVar("T", bound=typing.Callable)    #pass type hints through decorator, so static type checkers in IDE still work
 def timeit(f: T) -> T:                          #decorates function with "Executing...", "Executed, took t seconds"
     def function_new(*args, **kwargs):          #function modified to return
-        function_signature=""                   #function(parameters)
+        logger=setup_logging("KFS")             #logger
         y=None                                  #function return value
 
 
-        function_signature=f"{f.__name__}("     #function(
-        
-        for i, arg in enumerate(args):          #paramters unnamed args
-            function_signature+=str(arg)
-            if i<len(args)-1 or 0<len(kwargs):
-                function_signature+=", "
-        
-        for i, kwarg in enumerate(kwargs):      #parameters named kwargs
-            function_signature+=f"{kwarg}={str(kwargs[kwarg])}"
-            if i<len(kwargs)-1:
-                function_signature+=", "
-        
-        function_signature+=")"
-        
-
-        write(f"Executing {function_signature}...")
+        logger.info(f"Executing {f.__name__}{inspect.signature(f)}...")
         t0=dt.datetime.now(dt.timezone.utc)
         try:
             y=f(*args, **kwargs)    #execute function to decorate
         except:                     #crashes
             t1=dt.datetime.now(dt.timezone.utc)
             execution_time=(t1-t0).total_seconds()
-            write(f"Tried to execute {function_signature}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+            if f.__name__!="main":  #if not main crashed: error
+                logger.error(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+            else:                   #if main crashed: critical
+                logger.critical(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
             raise   #forward exception
                
         t1=dt.datetime.now(dt.timezone.utc)
         execution_time=(t1-t0).total_seconds()
-        write(f"Executed {function_signature}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s")
+        logger.info(f"Executed {f.__name__}{inspect.signature(f)}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s")
         
         return y
     
@@ -157,38 +201,26 @@ def timeit(f: T) -> T:                          #decorates function with "Execut
 T=typing.TypeVar("T", bound=typing.Callable)    #pass type hints through decorator, so static type checkers in IDE still work
 def timeit_async(f: T) -> T:                    #decorates async function with "Executing...", "Executed, took t seconds"
     async def function_new(*args, **kwargs):    #function modified to return
-        function_signature=""                   #function(parameters)
+        logger=setup_logging("KFS")             #logger
         y=None                                  #function return value
 
 
-        function_signature=f"{f.__name__}("     #function(
-        
-        for i, arg in enumerate(args):          #paramters unnamed args
-            function_signature+=str(arg)
-            if i<len(args)-1 or 0<len(kwargs):
-                function_signature+=", "
-        
-        for i, kwarg in enumerate(kwargs):      #parameters named kwargs
-            function_signature+=f"{kwarg}={str(kwargs[kwarg])}"
-            if i<len(kwargs)-1:
-                function_signature+=", "
-        
-        function_signature+=")"
-        
-
-        write(f"Executing {function_signature}...")
+        logger.info(f"Executing {f.__name__}{inspect.signature(f)}...")
         t0=dt.datetime.now(dt.timezone.utc)
         try:
             y=await f(*args, **kwargs)  #execute function to decorate
         except:                         #crashes
             t1=dt.datetime.now(dt.timezone.utc)
             execution_time=(t1-t0).total_seconds()
-            write(f"Tried to execute {function_signature}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+            if f.__name__!="main":  #if not main crashed: error
+                logger.error(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+            else:                   #if main crashed: critical
+                logger.critical(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
             raise   #forward exception
                
         t1=dt.datetime.now(dt.timezone.utc)
         execution_time=(t1-t0).total_seconds()
-        write(f"Executed {function_signature}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s")
+        logger.info(f"Executed {f.__name__}{inspect.signature(f)}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s")
         
         return y
     

@@ -3,5 +3,6 @@
 *.pyc
 test.py
 /__pycache__/
+/deprecated/
 /Log/
 /KFS Library Venv/

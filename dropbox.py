@@ -1,23 +1,24 @@
-import dropbox
+import dropbox, dropbox.exceptions, dropbox.files
+import inspect
 import os
 import requests
 import time
-from . import log, types
+from . import log
 
 
 def create_dbx(dropbox_API_token_filepath: str="./dropbox_API_token.txt"):  #create dbx instance with saved API token
-    types.check(create_dbx, locals(), types.Mode.instance)
-    
+    logger=log.setup_logging("KFS") #logger
+
     try:
         with open(dropbox_API_token_filepath, "rt") as dropbox_API_token_file:
             dropbox_API_token=dropbox_API_token_file.read()                         #read API access token
     except FileNotFoundError:                                                       #if token file does not exist yet: create empty for user to paste token into
-        log.write(f"Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Creating empty file...")
+        logger.warning(f"Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Creating empty file...")
         if os.path.dirname(dropbox_API_token_filepath)!="":
             os.makedirs(os.path.dirname(dropbox_API_token_filepath), exist_ok=True) #create folders
         open(dropbox_API_token_filepath, "wt")                                      #create empty file
-        log.write(f"\rDropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
-        raise FileNotFoundError(f"Error in KFS::dropbox::create_dbx(...): Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
+        logger.warning(f"\rDropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
+        raise FileNotFoundError(f"Error in {create_dbx.__name__}{inspect.signature(create_dbx)}: Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
 
     dbx=dropbox.Dropbox(dropbox_API_token)  #create dropbox instance
     return dbx
@@ -26,7 +27,7 @@ def create_dbx(dropbox_API_token_filepath: str="./dropbox_API_token.txt"):  #cre
 def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list: #list all files in path, returns list[str]
     file_names=[]   #file names to return
 
-    types.check(list_files, locals(), types.Mode.instance, types.Mode.instance)
+
     while True:
         try:
             result=dbx.files_list_folder(dir)   #read first batch of file names
@@ -41,11 +42,11 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list: #list
         else:
             break
 
-    file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] #append file names, exclude all non-files
+    file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] #append file names, exclude all non-files #type:ignore
 
-    while result.has_more==True:    #as long as more file names still unread: continue
-        result=dbx.files_list_folder_continue(result.cursor)
-        file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] #append file names, exclude all non-files
+    while result.has_more==True:    #as long as more file names still unread: continue #type:ignore
+        result=dbx.files_list_folder_continue(result.cursor) #type:ignore
+        file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] #append file names, exclude all non-files #type:ignore
 
     file_names.sort()   #sort file names before returning
 
@@ -55,9 +56,7 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list: #list
 def upload_file(dbx: dropbox.Dropbox, source_filepath: str, destination_filepath: str) -> None: #upload specified to dropbox, create folders as necessary, if file exists already replace
     CHUNK_SIZE=pow(2, 22)   #≈4,2MB
     
-    types.check(upload_file, locals(), types.Mode.instance, types.Mode.instance, types.Mode.instance)
     
-
     file_size=os.path.getsize(source_filepath)  #source file size [B]
 
     with open(source_filepath, "rb") as file:
@@ -73,7 +72,7 @@ def upload_file(dbx: dropbox.Dropbox, source_filepath: str, destination_filepath
                 continue
             else:
                 break
-        cursor=dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=file.tell())
+        cursor=dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=file.tell()) #type:ignore
         commit=dropbox.files.CommitInfo(path=destination_filepath)
         
         while file.tell()<file_size:             #keep uploading as long as not reached file end

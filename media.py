@@ -1,19 +1,20 @@
 import asyncio                          #concurrency
 import concurrent.futures               #multithreading
+import inspect
 import PIL, PIL.Image, PIL.ImageFile    #conversion to PDF
 import os
 import requests
 import time
 import typing                           #function type hint
-from . import exceptions, fstr, log, types
+from . import exceptions, fstr, log
 
 
 def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=True) -> list:    #convert list[str] with image filepaths to PDF, return PDF, upon failure exception will contain failure list
     conversion_failures_filepath=[] #conversion failures
+    logger=log.setup_logging("KFS") #logger
     PDF=[]                          #images converted for saving as pdf
     success=True                    #conversion successful?
     
-    types.check(convert_images_to_PDF, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.instance)
     images_filepath=list(images_filepath)
     PDF_filepath=str(PDF_filepath)
     
@@ -21,7 +22,7 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_succes
     PIL.ImageFile.LOAD_TRUNCATED_IMAGES=True    #set true or raises unnecessary exception sometimes
 
 
-    log.write("Converting images to PDF...")
+    logger.info("Converting images to PDF...")
     for image_filepath in images_filepath:   #convert all saved images
         try:
             with PIL.Image.open(image_filepath) as image_file:          #open image
@@ -29,51 +30,51 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_succes
         
         except PIL.UnidentifiedImageError:  #download earlier failed, image is corrupted
             success=False   #conversion not successful
-            log.write(f"\rConverting {image_filepath} to PDF failed.")
+            logger.error(f"\rConverting {image_filepath} to PDF failed.")
             conversion_failures_filepath.append(image_filepath) #append to failure list so parent function can retry downloading
 
             for i in range(3):
-                log.write(f"Deleting corrupted image {image_filepath}...")
+                logger.info(f"Deleting corrupted image {image_filepath}...")
                 try:
                     os.remove(image_filepath)   #remove image, redownload later
                 except PermissionError: #if could not be removed: try again, give up after try 3
                     if i<2:
-                        log.write(f"\rDeleting corrupted image {image_filepath} failed. Retrying after waiting 1s...")
+                        logger.error(f"\rDeleting corrupted image {image_filepath} failed. Retrying after waiting 1s...")
                         time.sleep(1)
                         continue
                     else:   #if removing corrupted image failed after 10th try: give hentai up
-                        log.write(f"Deleting corrupted image {image_filepath} failed 3 times. Giving up.")
+                        logger.error(f"Deleting corrupted image {image_filepath} failed 3 times. Giving up.")
                 else:
-                    log.write(f"\rDeleted corrupted image {image_filepath}.")
+                    logger.info(f"\rDeleted corrupted image {image_filepath}.")
                     break   #break out of inner loop, but keep trying to convert images to PDF to remove all other corrupt images in this function call and not later
             
         except FileNotFoundError:
             success=False   #conversion not successful
-            log.write(f"{image_filepath} not found, converting to PDF failed.")
+            logger.error(f"{image_filepath} not found, converting to PDF failed.")
             raise FileNotFoundError
 
         else:
-            log.write(f"\rConverted {image_filepath} to PDF.")
+            logger.info(f"\rConverted {image_filepath} to PDF.")
 
     
     if success==True and PDF_filepath!="":   #if successful and filepath given: save PDF
-        log.write("\rConverted images to PDF.")
-        log.write(f"Saving {PDF_filepath}...")
+        logger.info("\rConverted images to PDF.")
+        logger.info(f"Saving {PDF_filepath}...")
         PDF[0].save(PDF_filepath, save_all=True, append_images=PDF[1:])
-        log.write(f"\rSaved {PDF_filepath}.")
+        logger.info(f"\rSaved {PDF_filepath}.")
     else:
-        log.write(f"Converting to PDF failed, because 1 or more images could not be converted to PDF. Not saving any PDF.")
+        logger.error(f"Converting to PDF failed, because 1 or more images could not be converted to PDF. Not saving any PDF.")
 
     if success==True and if_success_delete_images==True:    #try to delete all source images if desired
-        log.write(f"Deleting images...")
+        logger.info(f"Deleting images...")
         for image_filepath in images_filepath:
             try:
                 os.remove(image_filepath)
             except PermissionError:
-                log.write(f"Deleting {image_filepath} failed. Skipping image...")
+                logger.error(f"Deleting {image_filepath} failed. Skipping image...")
             else:
-                log.write(f"\rDeleted {image_filepath}")
-        log.write("\rDeleted images.")
+                logger.info(f"\rDeleted {image_filepath}")
+        logger.info("\rDeleted images.")
 
     if success==False:  #if unsuccessful: throw exception with failure list
         raise exceptions.ConversionError(conversion_failures_filepath)
@@ -84,8 +85,6 @@ def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_succes
 
 def download_image_default(image_URL: str, image_filepath: str) -> None:    #from URL download image with requests, save in filepath, default worker for download_images(...)
     image=None  #image downloaded
-    
-    types.check(download_image_default, locals(), types.Mode.instance, types.Mode.instance)
 
 
     page=requests.get(image_URL)    #download image, exception handling outside
@@ -103,19 +102,19 @@ def download_images(images_URL: list, images_filepath: list,
                     multithreading: bool=True,
                     worker_function: typing.Callable=download_image_default, workers_max=None,
                     **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
-    images_downloaded=0 #how many images already downloaded counter
-    threads=[]          #worker threads for download
+    images_downloaded=0             #how many images already downloaded counter
+    logger=log.setup_logging("KFS") #logger
+    threads=[]                      #worker threads for download
     
-    types.check(download_images, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.instance, types.Mode.whatever)
     images_URL=list(images_URL)
     images_filepath=list(images_filepath)
 
 
     if len(images_URL)!=len(images_filepath):   #check if every image to download has exactly 1 filepath to save to
-        raise ValueError("Error in KFS::media::download_images(...): Length of images_URL and images_filepath must be the same.")
+        raise ValueError(f"Error in {download_images.__name__}{inspect.signature(download_images)}: Length of images_URL and images_filepath must be the same.")
 
 
-    log.write(f"Downloading images...")
+    logger.info(f"Downloading images...")
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers_max) as thread_manager:
         for i in range(len(images_URL)):                    #download missing images and save as specified
             if os.path.isfile(images_filepath[i])==True:    #if image already exists: skip
@@ -127,7 +126,7 @@ def download_images(images_URL: list, images_filepath: list,
                 threads.append(thread_manager.submit(worker_function, image_URL=images_URL[i], image_filepath=images_filepath[i], **kwargs)) #download and save image in worker thread
             else:
                 worker_function(image_URL=images_URL[i], image_filepath=images_filepath[i], **kwargs)       #no *args so user is forced to accept image_URL and image_filepath and no confusion ensues because of unexpected parameter passing
-                log.write(f"\rDownloaded image {fstr.notation_abs(i+1, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}. "+f"({images_URL[i]})") #refresh images downloaded display
+                logger.info(f"\rDownloaded image {fstr.notation_abs(i+1, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}. "+f"({images_URL[i]})") #refresh images downloaded display
 
         while _all_threads_done(threads)==False:                        #progess display in multithreaded mode, as long as threads still running:
             images_downloaded_new=_images_downloaded(images_filepath)   #how many images already downloaded
@@ -135,28 +134,28 @@ def download_images(images_URL: list, images_filepath: list,
                 time.sleep(0.1)
                 continue
             images_downloaded=images_downloaded_new   #refresh images downloaded
-            log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
+            logger.info(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
         images_downloaded=_images_downloaded(images_filepath)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed
-        log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
+        logger.info(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
 
     return
 
 async def download_images_async(images_URL: list, images_filepaths: list,
                                 worker_function: typing.Callable=download_image_default,
                                 **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
-    images_downloaded=0 #how many images already downloaded counter
-    tasks=[]            #worker tasks for download
+    images_downloaded=0             #how many images already downloaded counter
+    logger=log.setup_logging("KFS") #logger
+    tasks=[]                        #worker tasks for download
     
-    types.check(download_images_async, locals(), types.Mode.convertable, types.Mode.convertable, types.Mode.whatever)
     images_URL=list(images_URL)
     images_filepaths=list(images_filepaths)
     
 
     if len(images_URL)!=len(images_filepaths):  #check if every image to download has exactly 1 filepath to save to
-        raise ValueError("Error in KFS::media::download_images_async(...): Length of images_URL and images_filepath must be the same.")
+        raise ValueError(f"Error in {download_images_async.__name__}{inspect.signature(download_images_async)}: Length of images_URL and images_filepath must be the same.")
 
     
-    log.write(f"Downloading images...")
+    logger.info(f"Downloading images...")
     async with asyncio.TaskGroup() as task_manager: 
         for i in range(len(images_URL)):                    #download missing images and save as specified
             if os.path.isfile(images_filepaths[i])==True:   #if image already exists: skip
@@ -170,9 +169,9 @@ async def download_images_async(images_URL: list, images_filepaths: list,
                 await asyncio.sleep(0.1)                                #release lock so worker get ressources too
                 continue
             images_downloaded=images_downloaded_new   #refresh images downloaded
-            log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
+            logger.info(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
         images_downloaded=_images_downloaded(images_filepaths)   #refresh images downloaded 1 last time after threads are finished and in case of everything already downloaded progress display loop will not be executed
-        log.write(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
+        logger.info(f"\rDownloaded image {fstr.notation_abs(images_downloaded, 0, True)}/{fstr.notation_abs(len(images_URL), 0, True)}.")
 
     return
     
