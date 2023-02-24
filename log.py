@@ -4,6 +4,7 @@ import datetime as dt               #datetime
 import enum                         #enum
 import inspect                      #exception message with function header
 import logging, logging.handlers    #standard logging
+import math                         #math.ceil
 import os
 import typing                       #type hints
 from . import fstr #notation technical
@@ -60,6 +61,7 @@ class _Console_File_Formatter(logging.Formatter):
             "defaults": defaults
         }
 
+        self.line_previous_len=100      #line previous length, so can be overwritten cleanly if desired
         self.timestamp_previous=""      #timestamp used in previous logging call
         self.timestamp_previous_line="" #timestamp used in previous line
         return
@@ -96,7 +98,10 @@ class _Console_File_Formatter(logging.Formatter):
         if self.init_args["mode"]==self.Mode.console:   #if mode console:
             if record.msg[0:1]=="\r":                   #if record.msg[0] carriage return: prepare everything for overwriting later
                 overwrite_line_current=True             #overwrite line later
-                print("\x1b[K", end="")                 #clear line current, do not flush to avoid flickering
+                print("\r", end="")
+                for i in range(math.ceil(self.line_previous_len/10)):  #clear line current
+                    print("          ", end="")
+                print("", end="", flush=True)
                 fmt=f"\r{fmt}"                          #change format to write carriage return first
                 record.msg=record.msg[1:]               #remove carriage return
             else:                                       #if writing in new line:
@@ -138,6 +143,7 @@ class _Console_File_Formatter(logging.Formatter):
         formatter=logging.Formatter(fmt, self.init_args["datefmt"], self.init_args["style"], self.init_args["validate"]) #create custom formatter 
         record.msg=formatter.format(record)         #finally format message
         
+        self.line_previous_len=len(record.msg)      #save line length, so can be overwritten cleanly next call if desired
         self.timestamp_previous=timestamp_current   #timestamp current becomes timestamp previously used for next logging call
         return record.msg                           #return formatted message
 
