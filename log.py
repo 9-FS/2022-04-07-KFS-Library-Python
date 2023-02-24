@@ -184,14 +184,14 @@ def timeit(f: T) -> T:                          #decorates function with "Execut
             t1=dt.datetime.now(dt.timezone.utc)
             execution_time=(t1-t0).total_seconds()
             if f.__name__!="main":  #if not main crashed: error
-                logger.error(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+                logger.error(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed.\nDuration: {fstr.notation_tech(execution_time, 4)}s")
             else:                   #if main crashed: critical
-                logger.critical(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+                logger.critical(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed.\nDuration: {fstr.notation_tech(execution_time, 4)}s")
             raise   #forward exception
                
         t1=dt.datetime.now(dt.timezone.utc)
         execution_time=(t1-t0).total_seconds()
-        logger.info(f"Executed {f.__name__}{inspect.signature(f)}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s")
+        logger.info(f"Executed {f.__name__}{inspect.signature(f)} = {str(y)}.\nDuration: {fstr.notation_tech(execution_time, 4)}s")
         
         return y
     
@@ -213,14 +213,14 @@ def timeit_async(f: T) -> T:                    #decorates async function with "
             t1=dt.datetime.now(dt.timezone.utc)
             execution_time=(t1-t0).total_seconds()
             if f.__name__!="main":  #if not main crashed: error
-                logger.error(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+                logger.error(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed.\nDuration: {fstr.notation_tech(execution_time, 4)}s")
             else:                   #if main crashed: critical
-                logger.critical(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed. Duration: {fstr.notation_tech(execution_time, 4)}s")
+                logger.critical(f"Tried to execute {f.__name__}{inspect.signature(f)}, but crashed.\nDuration: {fstr.notation_tech(execution_time, 4)}s")
             raise   #forward exception
                
         t1=dt.datetime.now(dt.timezone.utc)
         execution_time=(t1-t0).total_seconds()
-        logger.info(f"Executed {f.__name__}{inspect.signature(f)}={str(y)}. Duration: {fstr.notation_tech(execution_time, 4)}s")
+        logger.info(f"Executed {f.__name__}{inspect.signature(f)} = {str(y)}.\nDuration: {fstr.notation_tech(execution_time, 4)}s")
         
         return y
     
