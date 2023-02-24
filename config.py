@@ -2,9 +2,15 @@ import os
 from . import log
 
 
-def load_config(filepath: str, default_content: str="") -> str|None:
+def load_config(filepath: str, default_content: str="", empty_ok: bool=False) -> str|None:
     """
-    Tries to load \"filepath\" and return text content. If file does not exist, create with \"default_content\" and return None.
+    Tries to load \"filepath\" and return text content.
+    
+    If file does not exist, create with \"default_content\" and return None.
+
+    If empty_ok is false and file does exist but is empty, return None.
+
+    If empty_ok is true and file does exist but is empty, return empty string.
     """
 
     file_content: str|None
@@ -12,9 +18,9 @@ def load_config(filepath: str, default_content: str="") -> str|None:
 
     logger.info(f"Loading \"{filepath}\"...")
     try:
-        with open(filepath, "rt") as file:
+        with open(filepath, "rt") as file:  #read file
             file_content=file.read()
-    except FileNotFoundError:
+    except FileNotFoundError:   #if file does not exist:
         file_content=None
         logger.warning(f"Could not load \"{filepath}\", because file does not exist.")
         logger.info(f"Creating \"{filepath}\" and filling with default content...")
@@ -22,15 +28,19 @@ def load_config(filepath: str, default_content: str="") -> str|None:
             if os.path.dirname(filepath)!="":
                 os.makedirs(os.path.dirname(filepath), exist_ok=True)   #create folders
             with open(filepath, "wt") as file:                          #create file
-                file.write(default_content)
+                file.write(default_content)                             #fill with default content
         except OSError:
             logger.error(f"Could not create \"{filepath}\" and fill with default content.")
         else:
             logger.info(f"\rCreated \"{filepath}\" and filled with default content.")
-    except PermissionError:
+    except PermissionError: #if filepath is actually a directory:
         file_content=None
         logger.error(f"Could not load \"{filepath}\", because permission was denied. It is likely a folder and not a file.")
-    else:
-        logger.info(f"\rLoaded \"{filepath}\".")
+    else:                                                                   #if loading successful:
+        if file_content=="" and empty_ok==False:                            #but if content is empty and not allowed empty:
+            logger.warning(f"\rLoaded \"{filepath}\", but it is empty.")    #warning
+            file_content=None
+        else:
+            logger.info(f"\rLoaded \"{filepath}\".")
     
     return file_content
