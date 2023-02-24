@@ -21,6 +21,7 @@ def setup_logging(name: str="", logging_level: int=logging.INFO, message_format:
 
     logger=logging.getLogger(name)  #create logger with name
     logger.setLevel(logging_level)  #set logging level
+    logger.handlers=[]              #remove all already existing handlers to avoid duplicates
     
     console_handler=logging.StreamHandler()
     console_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.console, message_format, datefmt=timestamp_format))
