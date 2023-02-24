@@ -1,8 +1,9 @@
 *.bat
 *.exe
+*.log
 *.pyc
+*.token
 test.py
 /__pycache__/
 /deprecated/
 /Log/
-/KFS Library Venv/

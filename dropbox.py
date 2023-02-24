@@ -1,30 +1,18 @@
 import dropbox, dropbox.exceptions, dropbox.files
-import inspect
 import os
 import requests
 import time
-from . import log
 
 
-def create_dbx(dropbox_API_token_filepath: str="./dropbox_API_token.txt"):  #create dbx instance with saved API token
-    logger=log.setup_logging("KFS") #logger
-
-    try:
-        with open(dropbox_API_token_filepath, "rt") as dropbox_API_token_file:
-            dropbox_API_token=dropbox_API_token_file.read()                         #read API access token
-    except FileNotFoundError:                                                       #if token file does not exist yet: create empty for user to paste token into
-        logger.warning(f"Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Creating empty file...")
-        if os.path.dirname(dropbox_API_token_filepath)!="":
-            os.makedirs(os.path.dirname(dropbox_API_token_filepath), exist_ok=True) #create folders
-        open(dropbox_API_token_filepath, "wt")                                      #create empty file
-        logger.warning(f"\rDropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
-        raise FileNotFoundError(f"Error in {create_dbx.__name__}{inspect.signature(create_dbx)}: Dropbox API token could not be loaded because given filepath {dropbox_API_token_filepath} does not exist yet. Created empty file for user to paste the dropbox API token into.")
-
-    dbx=dropbox.Dropbox(dropbox_API_token)  #create dropbox instance
-    return dbx
-
-
-def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list: #list all files in path, returns list[str]
+def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list[str]:
+    """
+    Takes dropbox instance and lists all filenames in specfied directory.
+    
+    If \"not_exist_ok\" is true, a non-existing directory will return an empty list, not an exception.
+    
+    If \"not_exist_ok\" is false, a non-existing directory will raise \"dropbox.exceptions.ApiError\".
+    """
+    
     file_names=[]   #file names to return
 
 
@@ -54,6 +42,10 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list: #list
 
 
 def upload_file(dbx: dropbox.Dropbox, source_filepath: str, destination_filepath: str) -> None: #upload specified to dropbox, create folders as necessary, if file exists already replace
+    """
+    Takes dropbox instance and uploads source to destination in dropbox.
+    """
+    
     CHUNK_SIZE=pow(2, 22)   #≈4,2MB
     
     
