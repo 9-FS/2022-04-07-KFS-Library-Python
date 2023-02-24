@@ -27,7 +27,7 @@ def setup_logging(name: str="", logging_level: int=logging.INFO, message_format:
     console_handler.terminator=""       #no automatic newline at the end, custom formatter handles newlines
     logger.addHandler(console_handler)
 
-    file_handler=_TimedFileHandler(f"./Log/%Y-%m-%d Log.txt", when="midnight", utc=True)
+    file_handler=_TimedFileHandler(f"./Log/%Y-%m-%d.log", when="midnight", utc=True)
     file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.file, message_format, datefmt=timestamp_format))
     file_handler.terminator=""          #no automatic newline at the end, custom formatter handles newlines
     logger.addHandler(file_handler)
@@ -71,11 +71,12 @@ class _Console_File_Formatter(logging.Formatter):
         """
         LEVEL_COLOURS={    #which level gets which colour?
             logging.DEBUG:    colorama.Fore.WHITE,
-            logging.INFO:     colorama.Fore.GREEN,
-            logging.WARNING:  colorama.Fore.YELLOW,
-            logging.ERROR:    colorama.Fore.RED,
-            logging.CRITICAL: colorama.Fore.RED+colorama.Style.BRIGHT
+            logging.INFO:     colorama.Fore.GREEN+colorama.Style.BRIGHT,
+            logging.WARNING:  colorama.Back.YELLOW+colorama.Fore.BLACK,
+            logging.ERROR:    colorama.Back.RED+colorama.Fore.BLACK,
+            logging.CRITICAL: colorama.Back.RED+colorama.Fore.WHITE+colorama.Style.BRIGHT
         }
+        colorama.just_fix_windows_console() #enable colours on windows console
         return format.replace("%(levelname)s", LEVEL_COLOURS[logging_level]+"%(levelname)s"+colorama.Style.RESET_ALL)
 
 
