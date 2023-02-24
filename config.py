@@ -27,6 +27,9 @@ def load_config(filepath: str, default_content: str="") -> str|None:
             logger.error(f"Could not create \"{filepath}\" and fill with default content.")
         else:
             logger.info(f"\rCreated \"{filepath}\" and filled with default content.")
+    except PermissionError:
+        file_content=None
+        logger.error(f"Could not load \"{filepath}\", because permission was denied. It is likely a folder and not a file.")
     else:
         logger.info(f"\rLoaded \"{filepath}\".")
     
