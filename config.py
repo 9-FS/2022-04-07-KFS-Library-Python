@@ -1,3 +1,4 @@
+import logging
 import os
 from . import log
 
@@ -14,7 +15,13 @@ def load_config(filepath: str, default_content: str="", empty_ok: bool=False) ->
     """
 
     file_content: str|None
-    logger=log.setup_logging("KFS") #logger
+    logger: logging.Logger  #logger
+    
+    if 1<=len(logging.getLogger("").handlers):  #if root logger defined handlers:
+        logger=logging.getLogger("")            #also use root logger to match formats defined outside KFS
+    else:                                       #if no root logger defined:
+        logger=log.setup_logging("KFS")         #use KFS default format
+        
 
     logger.info(f"Loading \"{filepath}\"...")
     try:

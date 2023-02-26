@@ -1,6 +1,7 @@
 import asyncio                          #concurrency
 import concurrent.futures               #multithreading
 import inspect
+import logging
 import PIL, PIL.Image, PIL.ImageFile    #conversion to PDF
 import os
 import requests
@@ -11,14 +12,18 @@ from . import exceptions, fstr, log
 
 def convert_images_to_PDF(images_filepath: list, PDF_filepath: str="", if_success_delete_images: bool=True) -> list:    #convert list[str] with image filepaths to PDF, return PDF, upon failure exception will contain failure list
     conversion_failures_filepath=[] #conversion failures
-    logger=log.setup_logging("KFS") #logger
+    logger: logging.Logger          #logger
     PDF=[]                          #images converted for saving as pdf
     success=True                    #conversion successful?
     
     images_filepath=list(images_filepath)
     PDF_filepath=str(PDF_filepath)
     
-
+    if 1<=len(logging.getLogger("").handlers):  #if root logger defined handlers:
+        logger=logging.getLogger("")            #also use root logger to match formats defined outside KFS
+    else:                                       #if no root logger defined:
+        logger=log.setup_logging("KFS")         #use KFS default format
+    
     PIL.ImageFile.LOAD_TRUNCATED_IMAGES=True    #set true or raises unnecessary exception sometimes
 
 
@@ -103,12 +108,16 @@ def download_images(images_URL: list, images_filepath: list,
                     worker_function: typing.Callable=download_image_default, workers_max=None,
                     **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
     images_downloaded=0             #how many images already downloaded counter
-    logger=log.setup_logging("KFS") #logger
+    logger: logging.Logger          #logger
     threads=[]                      #worker threads for download
     
     images_URL=list(images_URL)
     images_filepath=list(images_filepath)
 
+    if 1<=len(logging.getLogger("").handlers):  #if root logger defined handlers:
+        logger=logging.getLogger("")            #also use root logger to match formats defined outside KFS
+    else:                                       #if no root logger defined:
+        logger=log.setup_logging("KFS")         #use KFS default format
 
     if len(images_URL)!=len(images_filepath):   #check if every image to download has exactly 1 filepath to save to
         raise ValueError(f"Error in {download_images.__name__}{inspect.signature(download_images)}: Length of images_URL and images_filepath must be the same.")
@@ -144,13 +153,17 @@ async def download_images_async(images_URL: list, images_filepaths: list,
                                 worker_function: typing.Callable=download_image_default,
                                 **kwargs) -> None:  #download images from URL list, save as specified in filepath, exceptions from worker function will not be catched
     images_downloaded=0             #how many images already downloaded counter
-    logger=log.setup_logging("KFS") #logger
+    logger: logging.Logger          #logger
     tasks=[]                        #worker tasks for download
     
     images_URL=list(images_URL)
     images_filepaths=list(images_filepaths)
-    
 
+    if 1<=len(logging.getLogger("").handlers):  #if root logger defined handlers:
+        logger=logging.getLogger("")            #also use root logger to match formats defined outside KFS
+    else:                                       #if no root logger defined:
+        logger=log.setup_logging("KFS")         #use KFS default format
+    
     if len(images_URL)!=len(images_filepaths):  #check if every image to download has exactly 1 filepath to save to
         raise ValueError(f"Error in {download_images_async.__name__}{inspect.signature(download_images_async)}: Length of images_URL and images_filepath must be the same.")
 

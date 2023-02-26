@@ -182,8 +182,13 @@ class _TimedFileHandler(logging.handlers.TimedRotatingFileHandler):
 T=typing.TypeVar("T", bound=typing.Callable)    #pass type hints through decorator, so static type checkers in IDE still work
 def timeit(f: T) -> T:                          #decorates function with "Executing...", "Executed, took t seconds"
     def function_new(*args, **kwargs):          #function modified to return
-        logger=setup_logging("KFS")             #logger
+        logger: logging.Logger                  #logger
         y=None                                  #function return value
+
+        if 1<=len(logging.getLogger("").handlers):  #if root logger defined handlers:
+            logger=logging.getLogger("")            #also use root logger to match formats defined outside KFS
+        else:                                       #if no root logger defined:
+            logger=setup_logging("KFS")             #use KFS default format
 
 
         logger.info(f"Executing {f.__name__}{inspect.signature(f)}...")
@@ -211,8 +216,13 @@ def timeit(f: T) -> T:                          #decorates function with "Execut
 T=typing.TypeVar("T", bound=typing.Callable)    #pass type hints through decorator, so static type checkers in IDE still work
 def timeit_async(f: T) -> T:                    #decorates async function with "Executing...", "Executed, took t seconds"
     async def function_new(*args, **kwargs):    #function modified to return
-        logger=setup_logging("KFS")             #logger
+        logger: logging.Logger                  #logger
         y=None                                  #function return value
+
+        if 1<=len(logging.getLogger("").handlers):  #if root logger defined handlers:
+            logger=logging.getLogger("")            #also use root logger to match formats defined outside KFS
+        else:                                       #if no root logger defined:
+            logger=setup_logging("KFS")             #use KFS default format
 
 
         logger.info(f"Executing {f.__name__}{inspect.signature(f)}...")
