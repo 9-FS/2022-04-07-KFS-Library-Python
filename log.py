@@ -30,7 +30,7 @@ def setup_logging(logger_name: str="", logging_level: int=logging.INFO, message_
     console_handler.terminator=""       #no automatic newline at the end, custom formatter handles newlines
     logger.addHandler(console_handler)
 
-    file_handler=_TimedFileHandler(f"./Log/%Y-%m-%d.log", when="midnight", utc=True)
+    file_handler=_TimedFileHandler(f"./Log/%Y-%m-%d.log", when="midnight", encoding="utf-8", utc=True)
     file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.file, message_format, datefmt=timestamp_format))
     file_handler.terminator=""          #no automatic newline at the end, custom formatter handles newlines
     logger.addHandler(file_handler)
