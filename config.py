@@ -1,20 +1,23 @@
+import inspect
 import logging
 import os
 from . import log
 
 
-def load_config(filepath: str, default_content: str="", empty_ok: bool=False) -> str|None:
+def load_config(filepath: str, default_content: str="", empty_ok: bool=False) -> str:
     """
     Tries to load \"filepath\" and return text content.
     
-    If file does not exist, create with \"default_content\" and return None.
+    If file does not exist, create with \"default_content\" and raise FileNotFoundError.
 
-    If empty_ok is false and file does exist but is empty, return None.
+    If file does not exist because it is a directory, raise IsADirectoryError.
+
+    If empty_ok is false and file does exist but is empty, return ValueError.
 
     If empty_ok is true and file does exist but is empty, return empty string.
     """
 
-    file_content: str|None
+    filecontent: str
     logger: logging.Logger  #logger
     
     if 1<=len(logging.getLogger("").handlers):  #if root logger defined handlers:
@@ -23,8 +26,7 @@ def load_config(filepath: str, default_content: str="", empty_ok: bool=False) ->
         logger=log.setup_logging("KFS")         #use KFS default format
         
     if os.path.isfile(filepath)==False and os.path.isdir(filepath)==False:  #if input configuration file does not exist yet: create a default one and print instructions
-        logger.warning(f"Did not load \"{filepath}\", because file does not exist.")
-        file_content=None
+        logger.error(f"Did not load \"{filepath}\", because file does not exist.")
         logger.info(f"Creating default \"{filepath}\"...")
         try:
             if os.path.dirname(filepath)!="":
@@ -35,26 +37,24 @@ def load_config(filepath: str, default_content: str="", empty_ok: bool=False) ->
             logger.error(f"Creating default \"{filepath}\" failed.")
         else:
             logger.info(f"\rCreated default \"{filepath}\".")
-        return file_content
+        raise FileNotFoundError(f"Error in {load_config.__name__}{inspect.signature(load_config)}: Did not load \"{filepath}\", because file did not exist.")
     elif os.path.isfile(filepath)==False and os.path.isdir(filepath)==True:
         logger.error(f"Did not load \"{filepath}\", because it is a directory. Unable to create default file.")
-        file_content=None
-        return file_content
+        raise IsADirectoryError(f"Error in {load_config.__name__}{inspect.signature(load_config)}: Did not load \"{filepath}\", because it is a directory. Unable to create default file.")
 
 
     logger.info(f"Loading \"{filepath}\"...")
     try:
         with open(filepath, "rt") as file:  #read file
-            file_content=file.read()
-    except OSError: #if filepath is actually a directory:
+            filecontent=file.read()
+    except OSError: #write to log, then forward exception
         logger.error(f"Loading \"{filepath}\" failed.")
-        file_content=None
-        return file_content
+        raise
     
-    if file_content=="" and empty_ok==False:                        #but if content is empty and not allowed empty:
+    if filecontent=="" and empty_ok==False:                         #but if content is empty and not allowed empty:
         logger.error(f"\rLoaded \"{filepath}\", but it is empty.")  #error
-        file_content=None
-    else:
-        logger.info(f"\rLoaded \"{filepath}\".")
+        raise ValueError(f"Error in {load_config.__name__}{inspect.signature(load_config)}: Loaded \"{filepath}\", but it is empty.")
     
-    return file_content
+    logger.info(f"\rLoaded \"{filepath}\".")
+    
+    return filecontent
