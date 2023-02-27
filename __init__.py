@@ -1,12 +1,33 @@
-from . import config
-from . import dropbox
+try:
+    from . import config
+except ModuleNotFoundError:
+    pass
 #from . import DFS_AIP
-from . import dropbox
-from . import exceptions
-from . import fstr
-from . import log
-from . import math
-from . import media
+try:
+    from . import dropbox
+except ModuleNotFoundError:
+    pass
+try:
+    from . import exceptions
+except ModuleNotFoundError:
+    pass
+try:
+    from . import fstr
+except ModuleNotFoundError:
+    pass
+try:
+    from . import log
+except ModuleNotFoundError:
+    pass
+try:
+    from . import math
+except ModuleNotFoundError:
+    pass
+try:
+    from . import media
+except ModuleNotFoundError:
+    pass
+
 
 __all__=[
     "config",
