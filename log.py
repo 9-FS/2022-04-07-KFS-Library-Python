@@ -95,6 +95,7 @@ class _Console_File_Formatter(logging.Formatter):
 
         fmt=self.init_args["fmt"]       #get original format
         record=copy.deepcopy(record)    #deep copy record so changes here don't affect other formatters
+        record.msg=str(record.msg)      #convert msg to str, looses the additional data of the original object but is not needed anyways, just used as string here
         
         
         if self.init_args["mode"]==self.Mode.console:   #if mode console:
