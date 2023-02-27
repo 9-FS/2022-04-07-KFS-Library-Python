@@ -11,7 +11,7 @@ import typing                       #type hints
 from . import fstr #notation technical
 
 
-def setup_logging(name: str="", logging_level: int=logging.INFO, message_format: str="[%(asctime)s] %(levelname)s: %(message)s", timestamp_format: str="%Y-%m-%dT%H:%M:%S") -> logging.Logger:
+def setup_logging(logger_name: str="", logging_level: int=logging.INFO, message_format: str="[%(asctime)s] %(levelname)s: %(message)s", timestamp_format: str="%Y-%m-%dT%H:%M:%S") -> logging.Logger:
     """
     Setup logging to console and log file.
     - Timestamps are only printed if they changed from timestamp of previous line.
@@ -21,9 +21,9 @@ def setup_logging(name: str="", logging_level: int=logging.INFO, message_format:
     - Log files have have a custom name format depending on the current date.
     """
 
-    logger=logging.getLogger(name)  #create logger with name
-    logger.setLevel(logging_level)  #set logging level
-    logger.handlers=[]              #remove all already existing handlers to avoid duplicates
+    logger=logging.getLogger(logger_name)   #create logger with name
+    logger.setLevel(logging_level)          #set logging level
+    logger.handlers=[]                      #remove all already existing handlers to avoid duplicates
     
     console_handler=logging.StreamHandler()
     console_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.console, message_format, datefmt=timestamp_format))
