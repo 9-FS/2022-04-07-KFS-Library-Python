@@ -3,7 +3,20 @@ import math
 from . import math as KFSmath   #for round_sig, must "as KFSmath" because otherwise name conflict with math
 
 
-def notation_abs(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True) -> str: #converts to formatted rounded number (notation absolute) as string, no changing of magnitude for decimal prefixes
+def notation_abs(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, width: int=0) -> str: #type:ignore
+    """
+    Converts to formatted rounded number as string, no changing of magnitude for decimal prefixes (notation absolute).
+
+    - x: number to convert
+    - precision:
+        - if round_static==False: Round to significant digits.
+        - if round_static==True: Round to magnitude 10^(-precision), like built-in round().
+    - trailing_zeros: Append zeros until reached precision.
+    - width: After appending trailing zeros, prepend zeros until reaching width. Width includes decimal separator.
+    """
+
+    x: float|str
+
     x=float(x)
 
     
@@ -25,18 +38,32 @@ def notation_abs(x: float, precision: int, round_static: bool=False, trailing_ze
         dec_places=0
 
 
-    x=f"{x:,.{dec_places}f}".replace(".", "%TEMP%").replace(",", ".").replace("%TEMP%", ",")   #int to str, comma as decimal separator #type:ignore
+    x=f"{x:0{width},.{dec_places}f}".replace(".", "%TEMP%").replace(",", ".").replace("%TEMP%", ",")    #int to str, comma as decimal separator
     
-    if trailing_zeros==False and "," in x:  #if trailing zeros undesired and decimal places existing: #type:ignore
-        x=x.rstrip("0")                     #remove trailing zeros #type:ignore
-        if x[-1]==",":                      #if because of that last character comma: #type:ignore
-            x=x[:-1]                        #remove comma #type:ignore
+    if trailing_zeros==False and "," in x:  #if trailing zeros undesired and decimal places existing:
+        x=x.rstrip("0")                     #remove trailing zeros
+        if x[-1]==",":                      #if because of that last character comma:
+            x=x[:-1]                        #remove comma
 
 
-    return x #type:ignore
+    return x
 
 
-def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True) -> str: #converts to notation technical as string
+def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True, width: int=0) -> str:   #converts to notation technical as string #type:ignore
+    """
+    Converts to formatted rounded number as string, changes magnitude for decimal prefixes (notation technical).
+
+    - x: number to convert
+    - precision:
+        - if round_static==False: Round to significant digits.
+        - if round_static==True: Round to magnitude 10^(-precision), like built-in round().
+    - trailing_zeros: Append zeros until reached precision.
+    - add_decimal_prefix: Append decimal prefix for units.
+    - width: After appending trailing zeros, prepend zeros until reaching width. Width includes decimal separator.
+    """
+
+    x: float|str
+    
     x=float(x)
 
     
@@ -57,58 +84,58 @@ def notation_tech(x: float, precision: int, round_static: bool=False, trailing_z
     if dec_places<0:                                #at least 0 decimal places
         dec_places=0
 
-    x=f"{x/math.pow(10, magnitude-magnitude%3):.{dec_places}f}".replace(".", ",")   #int to str, to correct magnitude and number of decimal places, comma as decimal separator #type:ignore
+    x=f"{x/math.pow(10, magnitude-magnitude%3):0{width}.{dec_places}f}".replace(".", ",")   #int to str, to correct magnitude and number of decimal places, comma as decimal separator
     
-    if trailing_zeros==False and "," in x:  #if trailing zeros undesired and decimal places existing: #type:ignore
-        x=x.rstrip("0")                     #remove trailing zeros #type:ignore
-        if x[-1]==",":                      #if because of that last character comma: #type:ignore
-            x=x[:-1]                        #remove comma #type:ignore
+    if trailing_zeros==False and "," in x:  #if trailing zeros undesired and decimal places existing:
+        x=x.rstrip("0")                     #remove trailing zeros
+        if x[-1]==",":                      #if because of that last character comma:
+            x=x[:-1]                        #remove comma
     
     if add_decimal_prefix==True:    #if decimal prefix desired: append
         if    30<=magnitude and magnitude< 33:
-            x+="Q" #type:ignore
+            x+="Q"
         elif  27<=magnitude and magnitude< 30:
-            x+="R" #type:ignore
+            x+="R"
         elif  24<=magnitude and magnitude< 27:
-            x+="Y" #type:ignore
+            x+="Y"
         elif  21<=magnitude and magnitude< 24:
-            x+="Z" #type:ignore
+            x+="Z"
         elif  18<=magnitude and magnitude< 21:
-            x+="E" #type:ignore
+            x+="E"
         elif  15<=magnitude and magnitude< 18:
-            x+="P" #type:ignore
+            x+="P"
         elif  12<=magnitude and magnitude< 15:
-            x+="T" #type:ignore
+            x+="T"
         elif   9<=magnitude and magnitude< 12:
-            x+="G" #type:ignore
+            x+="G"
         elif   6<=magnitude and magnitude<  9:
-            x+="M" #type:ignore
+            x+="M"
         elif   3<=magnitude and magnitude<  6:
-            x+="k" #type:ignore
+            x+="k"
         elif   0<=magnitude and magnitude<  3:
-            x+="" #type:ignore
+            x+=""
         elif  -3<=magnitude and magnitude<  0:
-            x+="m" #type:ignore
+            x+="m"
         elif  -6<=magnitude and magnitude< -3:
-            x+="µ" #type:ignore
+            x+="µ"
         elif  -9<=magnitude and magnitude< -6:
-            x+="n" #type:ignore
+            x+="n"
         elif -12<=magnitude and magnitude< -9:
-            x+="p" #type:ignore
+            x+="p"
         elif -15<=magnitude and magnitude<-12:
-            x+="f" #type:ignore
+            x+="f"
         elif -18<=magnitude and magnitude<-15:
-            x+="a" #type:ignore
+            x+="a"
         elif -21<=magnitude and magnitude<-18:
-            x+="z" #type:ignore
+            x+="z"
         elif -24<=magnitude and magnitude<-21:
-            x+="y" #type:ignore
+            x+="y"
         elif -27<=magnitude and magnitude<-24:
-            x+="r" #type:ignore
+            x+="r"
         elif -30<=magnitude and magnitude<-27:
-            x+="q" #type:ignore
+            x+="q"
         else:
             raise ValueError(f"Error in {notation_tech.__name__}{inspect.signature(notation_tech)}: There are only decimal prefixes for magnitudes [-24; 27[. There is no decimal prefix for given magnitude {magnitude}.")
         
 
-    return x #type:ignore
+    return x
