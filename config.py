@@ -6,15 +6,15 @@ from . import log
 
 def load_config(filepath: str, default_content: str="", empty_ok: bool=False) -> str:
     """
-    Tries to load \"filepath\" and return text content.
+    Tries to load from \"filepath\" and return text content.
     
-    If file does not exist, create with \"default_content\" and raise FileNotFoundError.
+    If file does not exist, creates with \"default_content\" and raises FileNotFoundError.
 
-    If file does not exist because it is a directory, raise IsADirectoryError.
+    If file does not exist because it is a directory, raises IsADirectoryError.
 
-    If empty_ok is false and file does exist but is empty, return ValueError.
+    If empty_ok is false and file does exist but is empty, returns ValueError.
 
-    If empty_ok is true and file does exist but is empty, return empty string.
+    If empty_ok is true and file does exist but is empty, returns empty string.
     """
 
     filecontent: str
