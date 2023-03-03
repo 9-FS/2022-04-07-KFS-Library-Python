@@ -11,29 +11,48 @@ import typing                       #type hints
 from . import fstr #notation technical
 
 
-def setup_logging(logger_name: str="", logging_level: int=logging.INFO, message_format: str="[%(asctime)s] %(levelname)s: %(message)s", timestamp_format: str="%Y-%m-%dT%H:%M:%S") -> logging.Logger:
+def setup_logging(logger_name: str="",
+                  logging_level: int=logging.INFO,
+                  message_format: str="[%(asctime)s] %(levelname)s: %(message)s",
+                  timestamp_format: str="%Y-%m-%dT%H:%M:%S",
+                  print_to_console: bool=True,
+                  print_to_logfile: bool=True,
+                  filepath_format: str="./Log/%Y-%m-%d.log",
+                  rotate_filepath_when: str="midnight") -> logging.Logger:
     """
     Setup logging to console and log file.
     - Timestamps are only printed if they changed from timestamp of previous line.
     - Messages with linebreaks are properly indented.
     - "\\r" at the beginning of a message overwrites line in console.
     - Logging levels are colour-coded.
-    - Log files have have a custom name format depending on the current date.
+    - Log files have have a custom name format depending on the current datetime.
+
+    Arguments:
+    - logger_name: name for logging.Logger
+    - logging_level: Every logging.LogRecord with lower logging level than specified here will be ignored.
+    - message_format: basic structure on how to print a logging.LogRecord
+    - timestamp_format: basic structure on how to print a timestamp (\"%(asctime)s\")
+    - print_to_console: print to console or nah, can significantly speed up program
+    - print_to_logfile: print to logfile or nah
+    - filepath_format: basic structure of a logfile name
+    - rotate_filepath_when: when to refresh logfile name with current datetime, read more at https://docs.python.org/3/library/logging.handlers.html#timedrotatingfilehandler
     """
 
     logger=logging.getLogger(logger_name)   #create logger with name
     logger.setLevel(logging_level)          #set logging level
     logger.handlers=[]                      #remove all already existing handlers to avoid duplicates
     
-    console_handler=logging.StreamHandler()
-    console_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.console, message_format, datefmt=timestamp_format))
-    console_handler.terminator=""       #no automatic newline at the end, custom formatter handles newlines
-    logger.addHandler(console_handler)
+    if print_to_console==True:
+        console_handler=logging.StreamHandler()
+        console_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.console, message_format, datefmt=timestamp_format))
+        console_handler.terminator=""       #no automatic newline at the end, custom formatter handles newlines
+        logger.addHandler(console_handler)
 
-    file_handler=_TimedFileHandler(f"./Log/%Y-%m-%d.log", when="midnight", utc=True)
-    file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.file, message_format, datefmt=timestamp_format))
-    file_handler.terminator=""          #no automatic newline at the end, custom formatter handles newlines
-    logger.addHandler(file_handler)
+    if print_to_logfile==True:
+        file_handler=_TimedFileHandler(filepath_format, when=rotate_filepath_when, encoding="utf-8", utc=True)
+        file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.file, message_format, datefmt=timestamp_format))
+        file_handler.terminator=""          #no automatic newline at the end, custom formatter handles newlines
+        logger.addHandler(file_handler)
     
     return logger   #return logger in case needed
 
@@ -95,6 +114,7 @@ class _Console_File_Formatter(logging.Formatter):
 
         fmt=self.init_args["fmt"]       #get original format
         record=copy.deepcopy(record)    #deep copy record so changes here don't affect other formatters
+        record.msg=str(record.msg)      #convert msg to str, looses the additional data of the original object but is not needed anyways, just used as string here
         
         
         if self.init_args["mode"]==self.Mode.console:   #if mode console:
@@ -180,7 +200,11 @@ class _TimedFileHandler(logging.handlers.TimedRotatingFileHandler):
 
 
 T=typing.TypeVar("T", bound=typing.Callable)    #pass type hints through decorator, so static type checkers in IDE still work
-def timeit(f: T) -> T:                          #decorates function with "Executing...", "Executed, took t seconds"
+def timeit(f: T) -> T:
+    """
+    Decorates function with "Executing function()...", "Executed function()=result.\\nDuration: t"
+    """
+
     def function_new(*args, **kwargs):          #function modified to return
         logger: logging.Logger                  #logger
         y=None                                  #function return value
@@ -214,7 +238,11 @@ def timeit(f: T) -> T:                          #decorates function with "Execut
 
 
 T=typing.TypeVar("T", bound=typing.Callable)    #pass type hints through decorator, so static type checkers in IDE still work
-def timeit_async(f: T) -> T:                    #decorates async function with "Executing...", "Executed, took t seconds"
+def timeit_async(f: T) -> T:
+    """
+    Decorates function with "Executing function()...", "Executed function()=result.\\nDuration: t"
+    """
+
     async def function_new(*args, **kwargs):    #function modified to return
         logger: logging.Logger                  #logger
         y=None                                  #function return value
