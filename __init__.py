@@ -2,6 +2,10 @@ try:
     from . import config
 except ModuleNotFoundError:
     pass
+try:
+    from . import convert_to_SI
+except ModuleNotFoundError:
+    pass
 #from . import DFS_AIP
 try:
     from . import dropbox
@@ -31,6 +35,7 @@ except ModuleNotFoundError:
 
 __all__=[
     "config",
+    "convert_to_SI",
     #DFS_AIP,
     "dropbox",
     "exceptions",
