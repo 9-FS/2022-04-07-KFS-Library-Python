@@ -26,7 +26,7 @@ def load_config(filepath: str, default_content: str="", empty_ok: bool=False) ->
         logger=log.setup_logging("KFS")         #use KFS default format
         
     if os.path.isfile(filepath)==False and os.path.isdir(filepath)==False:  #if input configuration file does not exist yet: create a default one and print instructions
-        logger.error(f"Did not load \"{filepath}\", because file does not exist.")
+        logger.error(f"Loading \"{filepath}\" is not possible, because file does not exist.")
         logger.info(f"Creating default \"{filepath}\"...")
         try:
             if os.path.dirname(filepath)!="":
@@ -37,10 +37,10 @@ def load_config(filepath: str, default_content: str="", empty_ok: bool=False) ->
             logger.error(f"Creating default \"{filepath}\" failed.")
         else:
             logger.info(f"\rCreated default \"{filepath}\".")
-        raise FileNotFoundError(f"Error in {load_config.__name__}{inspect.signature(load_config)}: Did not load \"{filepath}\", because file did not exist.")
+        raise FileNotFoundError(f"Error in {load_config.__name__}{inspect.signature(load_config)}: Loading \"{filepath}\" is not possible, because file did not exist.")
     elif os.path.isfile(filepath)==False and os.path.isdir(filepath)==True:
-        logger.error(f"Did not load \"{filepath}\", because it is a directory. Unable to create default file.")
-        raise IsADirectoryError(f"Error in {load_config.__name__}{inspect.signature(load_config)}: Did not load \"{filepath}\", because it is a directory. Unable to create default file.")
+        logger.error(f"Loading \"{filepath}\" is not possible, because it is a directory. Unable to create default file.")
+        raise IsADirectoryError(f"Error in {load_config.__name__}{inspect.signature(load_config)}: Loading \"{filepath}\" is not possible, because it is a directory. Unable to create default file.")
 
 
     logger.info(f"Loading \"{filepath}\"...")
