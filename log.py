@@ -13,7 +13,7 @@ from . import fstr #notation technical
 
 def setup_logging(logger_name: str="",
                   logging_level: int=logging.INFO,
-                  message_format: str="[%(asctime)s] %(levelname)s: %(message)s",
+                  message_format: str="[%(asctime)s] %(levelname)s %(message)s",
                   timestamp_format: str="%Y-%m-%dT%H:%M:%S",
                   print_to_console: bool=True,
                   print_to_logfile: bool=True,
