@@ -24,7 +24,7 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list[str]:
                 return []                       #return empty list
             else:                               #otherwise forward dropbox exception
                 raise
-        except requests.exceptions.ConnectionError: #connection unexpectedly failed: try again
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout): #connection unexpectedly failed or timed out: try again
             time.sleep(1)
             continue
         else:
