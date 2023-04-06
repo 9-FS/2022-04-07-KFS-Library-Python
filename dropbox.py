@@ -1,10 +1,11 @@
-import dropbox, dropbox.exceptions, dropbox.files
+#Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
+import dropbox.dropbox_client, dropbox.exceptions, dropbox.files
 import os
 import requests
 import time
 
 
-def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list[str]:
+def list_files(dbx: dropbox.dropbox_client.Dropbox, dir: str, not_exist_ok=True) -> list[str]:
     """
     Takes dropbox instance and lists all filenames in specfied directory.
     
@@ -30,7 +31,7 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list[str]:
         else:
             break
 
-    file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] #append file names, exclude all non-files #type:ignore
+    file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True]     #append file names, exclude all non-files #type:ignore
 
     while result.has_more==True:    #as long as more file names still unread: continue #type:ignore
         result=dbx.files_list_folder_continue(result.cursor) #type:ignore
@@ -41,7 +42,7 @@ def list_files(dbx: dropbox.Dropbox, dir: str, not_exist_ok=True) -> list[str]:
     return file_names
 
 
-def upload_file(dbx: dropbox.Dropbox, source_filepath: str, destination_filepath: str) -> None: #upload specified to dropbox, create folders as necessary, if file exists already replace
+def upload_file(dbx: dropbox.dropbox_client.Dropbox, source_filepath: str, destination_filepath: str) -> None:  #upload specified to dropbox, create folders as necessary, if file exists already replace
     """
     Takes dropbox instance and uploads source to destination in dropbox.
     """

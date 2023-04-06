@@ -1,3 +1,4 @@
+#Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 import colorama                     #coloured logging levels
 import copy                         #deep copy
 import datetime as dt               #datetime

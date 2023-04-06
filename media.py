@@ -1,3 +1,4 @@
+#Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 import asyncio                          #concurrency
 import concurrent.futures               #multithreading
 import inspect

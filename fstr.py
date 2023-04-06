@@ -1,3 +1,4 @@
+#Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 import inspect
 import math
 from . import math as KFSmath   #for round_sig, must "as KFSmath" because otherwise name conflict with math
