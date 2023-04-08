@@ -1,5 +1,4 @@
 #Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
-import colorama                     #coloured logging levels
 import copy                         #deep copy
 import datetime as dt               #datetime
 import enum                         #enum
@@ -10,6 +9,15 @@ import os
 import sys                          #current system for colour enabling on windows
 import typing                       #type hints
 from . import fstr #notation technical
+
+
+COLORAMA_IMPORTED: bool
+try:
+    import colorama         #coloured logs
+except ModuleNotFoundError: #if colorama could not be imported:
+    COLORAMA_IMPORTED=False #no colours
+else:                       #if colorama could be imported:
+    COLORAMA_IMPORTED=True  #coloured logs
 
 
 def setup_logging(logger_name: str="",
@@ -54,6 +62,9 @@ def setup_logging(logger_name: str="",
         file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.file, message_format, datefmt=timestamp_format))
         file_handler.terminator=""          #no automatic newline at the end, custom formatter handles newlines
         logger.addHandler(file_handler)
+
+    if COLORAMA_IMPORTED==False:    #if colorama could not be imported: first record of logger will be this warning
+        logger.warning("Package \"colorama\" is not installed, logging levels will not be coloured. Fix this with `pip install colorama`.")
     
     return logger   #return logger in case needed
 
@@ -161,8 +172,8 @@ class _Console_File_Formatter(logging.Formatter):
             fmt=fmt.replace(r"[%(asctime)s]", timestamp_replacement)
 
         
-        if self.init_args["mode"]==self.Mode.console:
-            fmt=_Console_File_Formatter._dye_logging_level(fmt, record.levelno) #only in console mode dye logging level
+        if self.init_args["mode"]==self.Mode.console and COLORAMA_IMPORTED==True:   #if in console mode and colorama imported:
+            fmt=_Console_File_Formatter._dye_logging_level(fmt, record.levelno)     #dye logging level
         formatter=logging.Formatter(fmt, self.init_args["datefmt"], self.init_args["style"], self.init_args["validate"]) #create custom formatter 
         record.msg=formatter.format(record)         #finally format message
         
