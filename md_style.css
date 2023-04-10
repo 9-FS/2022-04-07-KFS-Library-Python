@@ -37,16 +37,30 @@ ul ul
     width: 100%;                /**size**/
 }
 
+.img_left_30                    /**default image on left side**/
+{
+    float: left;                /**align left**/
+    margin: 0mm 3mm 3mm 0mm;    /**margin to text**/
+    width: 30%;                 /**size**/
+}
+
+.img_left_50                    /**default image on left side**/
+{
+    float: left;                /**align left**/
+    margin: 0mm 3m 3mm 0mm;     /**margin to text**/
+    width: 50%;                 /**size**/
+}
+
 .img_right_30                   /**default image on right side**/
 {
-    float: right;               /**aligh right**/
+    float: right;               /**align right**/
     margin: 0mm 0mm 3mm 3mm;    /**margin to text**/
     width: 30%;                 /**size**/
 }
 
 .img_right_50                   /**default image on right side**/
 {
-    float: right;               /**aligh right**/
+    float: right;               /**align right**/
     margin: 0mm 0mm 3mm 3mm;    /**margin to text**/
     width: 50%;                 /**size**/
 }
