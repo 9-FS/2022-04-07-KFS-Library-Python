@@ -3,5 +3,5 @@
 *.log
 *.pyc
 *.token
-/__pycache__/
 /deprecated/
+/Log/
