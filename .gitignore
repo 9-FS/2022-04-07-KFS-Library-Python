@@ -4,4 +4,5 @@
 *.pyc
 *.token
 /deprecated/
-/Log/
+/log/
+/src/test.py

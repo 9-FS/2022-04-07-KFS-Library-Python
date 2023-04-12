@@ -26,7 +26,7 @@ def setup_logging(logger_name: str="",
                   timestamp_format: str="%Y-%m-%dT%H:%M:%S",
                   print_to_console: bool=True,
                   print_to_logfile: bool=True,
-                  filepath_format: str="./Log/%Y-%m-%d.log",
+                  filepath_format: str="./log/%Y-%m-%d.log",
                   rotate_filepath_when: str="midnight") -> logging.Logger:
     """
     Setup logging to console and log file.
