@@ -44,7 +44,21 @@ ul ul
     list-style: disc;           /**level 2 and below get point**/
 }
 
-.img_centre                     /**default image in centre**/
+.img_centre_30                  /**default image in centre**/
+{
+    display: block;             /**not inline, takes up whole width**/
+    margin: 0mm auto 3mm auto;
+    width: 30%;                 /**size**/
+}
+
+.img_centre_50                  /**default image in centre**/
+{
+    display: block;             /**not inline, takes up whole width**/
+    margin: 0mm auto 3mm auto;
+    width: 50%;                 /**size**/
+}
+
+.img_centre_100                 /**default image in centre**/
 {
     display: block;             /**not inline, takes up whole width**/
     margin: 0mm auto 3mm auto;
