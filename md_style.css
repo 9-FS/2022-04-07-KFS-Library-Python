@@ -1,21 +1,35 @@
 /**Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.**/
-div#global                      /**global style**/
+body                            /**global style**/
 {
     font-family: Maven Pro, Calibri, Helvetica, Arial;
     font-size: 15px;
     text-align: justify;        /**block alignment**/
 }
 
-code                            /**source code**/
+code                            /**source code inline**/
 {
+    color: #d4af37;
+    /**color: inherit;**/
     font-family: Cascadia Code, Consolas, Courier New;
     font-size: 12px;
-    text-align: left;
 }
 p.img_caption                   /**image caption**/
 {
     font-style: italic;
 }
+
+pre:not(.hljs)                  /**source code block background**/
+{
+    /**background-color: #1e1e1e;**/
+}
+pre code                        /**source code block foreground**/
+{
+    /**color: #ffffff;**/
+    font-family: Cascadia Code, Consolas, Courier New;
+    font-size: 12px;
+    text-align: left;
+}
+
 ol                              /**ordered list**/
 {
     padding-left: 5mm;
