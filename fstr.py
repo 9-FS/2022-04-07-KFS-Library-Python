@@ -1,24 +1,27 @@
 #Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 import inspect
 import math
+import sys
 from . import math as KFSmath   #for round_sig, must "as KFSmath" because otherwise name conflict with math
 
 
 def notation_abs(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, width: int=0) -> str: #type:ignore
     """
-    Converts to formatted rounded number as string, no changing of magnitude for decimal prefixes (notation absolute).
+    Formats rounded number as string, no changing of magnitude for decimal prefixes (notation absolute).
 
-    - x: number to convert
+    Arguments:
+    - x: number to format
     - precision:
         - if round_static==False: Round to significant digits.
         - if round_static==True: Round to magnitude 10^(-precision), like built-in round().
     - trailing_zeros: Append zeros until reached precision.
     - width: After appending trailing zeros, prepend zeros until reaching width. Width includes decimal separator.
+
+    Returns:
+    - x: formatted number
     """
 
     x: float|str
-
-    x=float(x)
 
     
     if round_static==False:
@@ -52,20 +55,25 @@ def notation_abs(x: float, precision: int, round_static: bool=False, trailing_ze
 
 def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True, width: int=0) -> str:   #converts to notation technical as string #type:ignore
     """
-    Converts to formatted rounded number as string, changes magnitude for decimal prefixes (notation technical).
+    Formats rounded number as string, changes magnitude for decimal prefixes (notation technical).
 
-    - x: number to convert
+    Arguments:
+    - x: number to format
     - precision:
         - if round_static==False: Round to significant digits.
         - if round_static==True: Round to magnitude 10^(-precision), like built-in round().
     - trailing_zeros: Append zeros until reached precision.
     - add_decimal_prefix: Append decimal prefix for units.
     - width: After appending trailing zeros, prepend zeros until reaching width. Width includes decimal separator.
+
+    Returns:
+    - x: formatted number
+
+    Raises:
+    - ValueError: There are only decimal prefixes for magnitudes [-30; 33[. There is no decimal prefix for given magnitude.
     """
 
     x: float|str
-    
-    x=float(x)
 
     
     if round_static==False:
@@ -136,7 +144,44 @@ def notation_tech(x: float, precision: int, round_static: bool=False, trailing_z
         elif -30<=magnitude and magnitude<-27:
             x+="q"
         else:
-            raise ValueError(f"Error in {notation_tech.__name__}{inspect.signature(notation_tech)}: There are only decimal prefixes for magnitudes [-24; 27[. There is no decimal prefix for given magnitude {magnitude}.")
+            raise ValueError(f"Error in {notation_tech.__name__}{inspect.signature(notation_tech)}: There are only decimal prefixes for magnitudes [-30; 33[. There is no decimal prefix for given magnitude {magnitude}.")
         
 
     return x
+
+
+colour_i=0  #which colour currently? memorise for continueing at next function call
+def rainbowify(string_in: str) -> str:
+    """
+    Dyes input string to rainbow.
+
+    Arguments:
+    - string_in: string that should be rainbowified
+
+    Returns:
+    - string_out: rainbowified string
+    """
+    import colorama
+    global colour_i
+    string_out: str=""          #result
+    RAINBOW_COLOURS: list=[     #dye definition
+        colorama.Fore.MAGENTA,
+        colorama.Fore.RED,
+        colorama.Fore.YELLOW,
+        colorama.Fore.GREEN,
+        colorama.Fore.CYAN,
+        colorama.Fore.BLUE,
+    ]
+
+    if sys.platform=="win32" or sys.platform=="cygwin": #if windows:
+        colorama.just_fix_windows_console()             #enable colours on windows console
+
+
+    for char in string_in:
+        string_out+=RAINBOW_COLOURS[colour_i]           #dye
+        string_out+=char                                #append character
+        if char!=" ":                                   #if no space:
+            colour_i=(colour_i+1)%len(RAINBOW_COLOURS)  #colour next
+    string_out+=colorama.Style.RESET_ALL                #reset colours
+
+    return string_out
