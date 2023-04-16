@@ -26,13 +26,16 @@ pre code                        /**source code block foreground**/
 {
     /**color: #ffffff;**/
     font-family: Cascadia Code, Consolas, Courier New;
-    font-size: 12px;
+    font-size: 10px;
     text-align: left;
 }
-
 ol                              /**ordered list**/
 {
     padding-left: 5mm;
+}
+blockquote                      /**quote block**/
+{
+    /**font-size: 12px;**/
 }
 ul                              /**unordered list**/
 {
@@ -48,6 +51,7 @@ ul ul
 {
     display: block;             /**not inline, takes up whole width**/
     margin: 0mm auto 3mm auto;
+    max-width: 48mm;            /**absolute size limit so images don't get too big and clash in wider aspect ratios**/
     width: 30%;                 /**size**/
 }
 
@@ -55,6 +59,7 @@ ul ul
 {
     display: block;             /**not inline, takes up whole width**/
     margin: 0mm auto 3mm auto;
+    max-width: 80mm;            /**absolute size limit so images don't get too big and clash in wider aspect ratios**/
     width: 50%;                 /**size**/
 }
 
@@ -69,6 +74,7 @@ ul ul
 {
     float: left;                /**align left**/
     margin: 0mm 3mm 3mm 0mm;    /**margin to text**/
+    max-width: 48mm;            /**absolute size limit so images don't get too big and clash in wider aspect ratios**/
     width: 30%;                 /**size**/
 }
 
@@ -76,6 +82,7 @@ ul ul
 {
     float: left;                /**align left**/
     margin: 0mm 3m 3mm 0mm;     /**margin to text**/
+    max-width: 80mm;            /**absolute size limit so images don't get too big and clash in wider aspect ratios**/
     width: 50%;                 /**size**/
 }
 
@@ -83,6 +90,7 @@ ul ul
 {
     float: right;               /**align right**/
     margin: 0mm 0mm 3mm 3mm;    /**margin to text**/
+    max-width: 48mm;            /**absolute size limit so images don't get too big and clash in wider aspect ratios**/
     width: 30%;                 /**size**/
 }
 
@@ -90,5 +98,6 @@ ul ul
 {
     float: right;               /**align right**/
     margin: 0mm 0mm 3mm 3mm;    /**margin to text**/
+    max-width: 80mm;            /**absolute size limit so images don't get too big and clash in wider aspect ratios**/
     width: 50%;                 /**size**/
 }
