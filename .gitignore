@@ -4,5 +4,6 @@
 *.pyc
 *.token
 /deprecated/
+/doc_templates/
 /log/
 /src/test.py
