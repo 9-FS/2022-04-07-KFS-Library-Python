@@ -130,20 +130,20 @@ class _Console_File_Formatter(logging.Formatter):
         
         
         if self.init_args["mode"]==self.Mode.console:   #if mode console:
-            if record.msg[0:1]=="\r":                   #if record.msg[0] carriage return: prepare everything for overwriting later
+            if record.msg[0:1]=="\r":                   #if record.msg[0] carriage return: prepare everything for overwriting line previous later
                 overwrite_line_current=True             #overwrite line later
-                print("\r", end="")
-                for i in range(math.ceil(self.line_previous_len/10)):  #clear line current
+                print("\x1b[1A\r", end="")
+                for i in range(math.ceil(self.line_previous_len/10)):  #clear line previous
                     print("          ", end="")
                 print("", end="", flush=True)
-                fmt=f"\r{fmt}"                          #change format to write carriage return first
+                fmt=f"\r{fmt}\n"                        #change format to write carriage return first and write newline at end
                 record.msg=record.msg[1:]               #remove carriage return
             else:                                       #if writing in new line:
                 overwrite_line_current=False            #don't overwrite line later
-                fmt=f"\n{fmt}"                          #change format to write newline first
+                fmt=f"{fmt}\n"                          #change format to just write newline at end
         elif self.init_args["mode"]==self.Mode.file:    #if mode log file:
             overwrite_line_current=False                #don't overwrite line later
-            fmt=f"\n{fmt}"                              #change format to write newline first
+            fmt=f"{fmt}\n"                              #change format write newline at end
             if record.msg[0:1]=="\r":
                 record.msg=record.msg[1:]               #remove carriage return
         else:
