@@ -128,32 +128,12 @@ class _Console_File_Formatter(logging.Formatter):
         record=copy.deepcopy(record)    #deep copy record so changes here don't affect other formatters
         record.msg=str(record.msg)      #convert msg to str, looses the additional data of the original object but is not needed anyways, just used as string here
         
-        
-        if self.init_args["mode"]==self.Mode.console:   #if mode console:
-            if record.msg[0:1]=="\r":                   #if record.msg[0] carriage return: prepare everything for overwriting line previous later
-                overwrite_line_current=True             #overwrite line later
-                print("\x1b[1A\r", end="")
-                for i in range(math.ceil(self.line_previous_len/10)):  #clear line previous
-                    print("          ", end="")
-                print("", end="", flush=True)
-                fmt=f"\r{fmt}\n"                        #change format to write carriage return first and write newline at end
-                record.msg=record.msg[1:]               #remove carriage return
-            else:                                       #if writing in new line:
-                overwrite_line_current=False            #don't overwrite line later
-                fmt=f"{fmt}\n"                          #change format to just write newline at end
-        elif self.init_args["mode"]==self.Mode.file:    #if mode log file:
-            overwrite_line_current=False                #don't overwrite line later
-            fmt=f"{fmt}\n"                              #change format write newline at end
-            if record.msg[0:1]=="\r":
-                record.msg=record.msg[1:]               #remove carriage return
-        else:
-            raise RuntimeError(f"Error in {format.__name__}{inspect.signature(format)}: Invalid formatter mode \"{self.init_args['mode'].name}\".")
 
         if "\n" in record.msg:          #if newline in message: indent coming lines
             newline_replacement="\n"    #initialise with newline, add preceding spaces next
             number_of_spaces=0          #number of spaces needed for indentation
             
-            number_of_spaces+=len(fmt[1:].split(r"%(message)s", 1)[0].replace(r"%(asctime)s", "").replace(r"%(levelname)s", "")) #static format length without variables, for indentation only consider what is right of beginning \n or \r and left of first %(message)s
+            number_of_spaces+=len(fmt.split(r"%(message)s", 1)[0].replace(r"%(asctime)s", "").replace(r"%(levelname)s", ""))    #static format length without variables, for indentation only consider what is left of first %(message)s
             if r"%(asctime)s" in fmt:                                   #if timestamp in format: determine length
                 number_of_spaces+=len(timestamp_current)
             if r"%(levelname)s" in fmt:                                 #if logging level in format: determine length
@@ -161,7 +141,28 @@ class _Console_File_Formatter(logging.Formatter):
             for i in range(number_of_spaces):                           #add indentation
                 newline_replacement+=" " 
             record.msg=record.msg.replace("\n", newline_replacement)    #replace all linebreaks with linebreaks + indentation
-
+        
+        match self.init_args["mode"]:
+            case self.Mode.console:                                         #if mode console:
+                if record.msg[0:1]=="\r":                                   #if record.msg[0] carriage return: prepare everything for overwriting line previous later
+                    overwrite_line_current=True                             #overwrite line later
+                    print("\x1b[1A\r", end="")                              #jump to line previous, then to beginning
+                    for i in range(math.ceil(self.line_previous_len/10)):   #clear line previous
+                        print("          ", end="")
+                    print("", end="", flush=True)
+                    fmt=f"\r{fmt}\n"                                        #change format to write carriage return first and write newline at end
+                    record.msg=record.msg[1:]                               #remove carriage return from message
+                else:                                                       #if writing in new line:
+                    overwrite_line_current=False                            #don't overwrite line later
+                    fmt=f"{fmt}\n"                                          #change format to just write newline at end
+            case self.Mode.file:                #if mode log file:
+                overwrite_line_current=False    #don't overwrite line later
+                fmt=f"{fmt}\n"                  #change format to write newline at end
+                if record.msg[0:1]=="\r":
+                    record.msg=record.msg[1:]   #remove carriage return from message
+            case _: #if invalid formatter mode
+                raise RuntimeError(f"Error in {format.__name__}{inspect.signature(format)}: Invalid formatter mode \"{self.init_args['mode'].name}\".")
+        
         if overwrite_line_current==False:                           #if we write in line new:
             self.timestamp_previous_line=self.timestamp_previous    #update timestamp previous line to timestamp previously used
 
