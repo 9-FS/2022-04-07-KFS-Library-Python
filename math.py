@@ -10,4 +10,4 @@ def round_sig(x: float, significants: int) -> int:  # round to significant numbe
         return 0
 
     magnitude=math.floor(math.log10(abs(x)))        # determine magnitude floored
-    return round(x, -1*magnitude+significants-1)    # round # type:ignore
+    return round(x, -1*magnitude+significants-1)    # round #type:ignore

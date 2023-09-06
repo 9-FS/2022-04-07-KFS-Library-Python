@@ -31,11 +31,11 @@ def list_files(dbx: dropbox.dropbox_client.Dropbox, dir: str, not_exist_ok=True)
         else:
             break
 
-    file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True]     # append file names, exclude all non-files # type:ignore
+    file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True]     # append file names, exclude all non-files #type:ignore
 
-    while result.has_more==True:                                                                                    # as long as more file names still unread: continue # type:ignore
-        result=dbx.files_list_folder_continue(result.cursor) # type:ignore
-        file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] # append file names, exclude all non-files # type:ignore
+    while result.has_more==True:                                                                                    # as long as more file names still unread: continue #type:ignore
+        result=dbx.files_list_folder_continue(result.cursor) #type:ignore
+        file_names+=[entry.name for entry in result.entries if isinstance(entry, dropbox.files.FileMetadata)==True] # append file names, exclude all non-files #type:ignore
 
     file_names.sort()   # sort file names before returning
 
@@ -65,7 +65,7 @@ def upload_file(dbx: dropbox.dropbox_client.Dropbox, source_filepath: str, desti
                 continue
             else:
                 break
-        cursor=dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=file.tell()) # type:ignore
+        cursor=dropbox.files.UploadSessionCursor(session_id=upload_session_start_result.session_id, offset=file.tell()) #type:ignore
         commit=dropbox.files.CommitInfo(path=destination_filepath)
         
         while file.tell()<file_size:             # keep uploading as long as not reached file end

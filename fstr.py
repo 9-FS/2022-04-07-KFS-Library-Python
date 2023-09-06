@@ -5,7 +5,7 @@ import sys
 from . import math as KFSmath   # for round_sig, must "as KFSmath" because otherwise name conflict with math
 
 
-def notation_abs(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, width: int=0) -> str: # type:ignore
+def notation_abs(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, width: int=0) -> str:   #type:ignore
     """
     Formats rounded number as string, no changing of magnitude for decimal prefixes (notation absolute).
 
@@ -53,7 +53,7 @@ def notation_abs(x: float, precision: int, round_static: bool=False, trailing_ze
     return x
 
 
-def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True, width: int=0) -> str:   # converts to notation technical as string # type:ignore
+def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True, width: int=0) -> str:   # converts to notation technical as string #type:ignore
     """
     Formats rounded number as string, changes magnitude for decimal prefixes (notation technical).
 
