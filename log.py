@@ -32,7 +32,7 @@ def setup_logging(logger_name: str="",
     Setup logging to console and log file.
     - Timestamps are only printed if they changed from timestamp of previous line.
     - Messages with linebreaks are properly indented.
-    - "\\r" at the beginning of a message overwrites line in console.
+    - "\r" at the beginning of a message overwrites line in console.
     - Logging levels are colour-coded.
     - Log files have have a custom name format depending on the current datetime.
 
@@ -53,13 +53,13 @@ def setup_logging(logger_name: str="",
     
     if print_to_console==True:
         console_handler=logging.StreamHandler()
-        console_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.console, message_format, datefmt=timestamp_format))
+        console_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Output.console, message_format, datefmt=timestamp_format))
         console_handler.terminator=""       #no automatic newline at the end, custom formatter handles newlines
         logger.addHandler(console_handler)
 
     if print_to_logfile==True:
         file_handler=_TimedFileHandler(filepath_format, when=rotate_filepath_when, encoding="utf-8", utc=True)
-        file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Mode.file, message_format, datefmt=timestamp_format))
+        file_handler.setFormatter(_Console_File_Formatter(_Console_File_Formatter.Output.file, message_format, datefmt=timestamp_format))
         file_handler.terminator=""          #no automatic newline at the end, custom formatter handles newlines
         logger.addHandler(file_handler)
 
@@ -78,14 +78,14 @@ class _Console_File_Formatter(logging.Formatter):
     - Logging levels are colour-coded.
     """
 
-    class Mode(enum.Enum):  #is this a formatter for console or log file?
+    class Output(enum.Enum):    #is this a formatter for console or log file?
         console=enum.auto()
         file   =enum.auto()
     
 
-    def __init__(self, mode: Mode, fmt: str|None=None, datefmt: str|None=None, style: str="%", validate: bool=True, defaults: str|None=None) -> None:
+    def __init__(self, output: Output, fmt: str|None=None, datefmt: str|None=None, style: str="%", validate: bool=True, defaults: str|None=None) -> None:
         self.init_args={    #save arguments to forward to actual logging.Formatter later
-            "mode": mode,
+            "output": output,
             "fmt": fmt,
             "datefmt": datefmt,
             "style": style,
@@ -140,11 +140,11 @@ class _Console_File_Formatter(logging.Formatter):
                 number_of_spaces+=len(record.levelname)
             for i in range(number_of_spaces):                           #add indentation
                 newline_replacement+=" " 
-            record.msg=record.msg.replace("\n", newline_replacement)    #replace all linebreaks with linebreaks + indentation
+            record.msg=record.msg.replace("\n", newline_replacement)    #replace all linebreaks with linebreak + indentation
         
-        match self.init_args["mode"]:
-            case self.Mode.console:                                         #if mode console:
-                if record.msg[0:1]=="\r":                                   #if record.msg[0] carriage return: prepare everything for overwriting line previous later
+        match self.init_args["output"]:
+            case self.Output.console:                                       #if output console:
+                if record.msg.startswith("\r"):                             #if record.msg starts with carriage return: prepare everything for overwriting line previous later
                     overwrite_line_current=True                             #overwrite line later
                     print("\x1b[1A\r", end="")                              #jump to line previous, then to beginning
                     for i in range(math.ceil(self.line_previous_len/10)):   #clear line previous
@@ -155,13 +155,13 @@ class _Console_File_Formatter(logging.Formatter):
                 else:                                                       #if writing in new line:
                     overwrite_line_current=False                            #don't overwrite line later
                     fmt=f"{fmt}\n"                                          #change format to just write newline at end
-            case self.Mode.file:                #if mode log file:
+            case self.Output.file:              #if output log file:
                 overwrite_line_current=False    #don't overwrite line later
                 fmt=f"{fmt}\n"                  #change format to write newline at end
                 if record.msg[0:1]=="\r":
                     record.msg=record.msg[1:]   #remove carriage return from message
-            case _: #if invalid formatter mode
-                raise RuntimeError(f"Error in {format.__name__}{inspect.signature(format)}: Invalid formatter mode \"{self.init_args['mode'].name}\".")
+            case _: #if invalid formatter output
+                raise RuntimeError(f"Error in {format.__name__}{inspect.signature(format)}: Invalid formatter output \"{self.init_args['output'].name}\".")
         
         if overwrite_line_current==False:                           #if we write in line new:
             self.timestamp_previous_line=self.timestamp_previous    #update timestamp previous line to timestamp previously used
@@ -173,8 +173,8 @@ class _Console_File_Formatter(logging.Formatter):
             fmt=fmt.replace(r"[%(asctime)s]", timestamp_replacement)
 
         
-        if self.init_args["mode"]==self.Mode.console and COLORAMA_IMPORTED==True:   #if in console mode and colorama imported:
-            fmt=_Console_File_Formatter._dye_logging_level(fmt, record.levelno)     #dye logging level
+        if self.init_args["output"]==self.Output.console and COLORAMA_IMPORTED==True:   #if in console output and colorama imported:
+            fmt=_Console_File_Formatter._dye_logging_level(fmt, record.levelno)         #dye logging level
         formatter=logging.Formatter(fmt, self.init_args["datefmt"], self.init_args["style"], self.init_args["validate"]) #create custom formatter 
         record.msg=formatter.format(record)         #finally format message
         
