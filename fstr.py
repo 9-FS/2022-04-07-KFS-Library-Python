@@ -1,11 +1,11 @@
-#Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
+# Copyright (c) 2023 구FS, all rights reserved. Subject to the MIT licence in `licence.md`.
 import inspect
 import math
 import sys
-from . import math as KFSmath   #for round_sig, must "as KFSmath" because otherwise name conflict with math
+from . import math as KFSmath   # for round_sig, must "as KFSmath" because otherwise name conflict with math
 
 
-def notation_abs(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, width: int=0) -> str: #type:ignore
+def notation_abs(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, width: int=0) -> str: # type:ignore
     """
     Formats rounded number as string, no changing of magnitude for decimal prefixes (notation absolute).
 
@@ -25,35 +25,35 @@ def notation_abs(x: float, precision: int, round_static: bool=False, trailing_ze
 
     
     if round_static==False:
-        x=KFSmath.round_sig(x, precision)           #round to signifcant number
+        x=KFSmath.round_sig(x, precision)           # round to signifcant number
     else:
-        x=round(x, precision)                       #round to decimal place static
+        x=round(x, precision)                       # round to decimal place static
         
-    if x!=0:                                        #determine magnitude after rounding in case rounding changes magnitude
-        magnitude=math.floor(math.log10(abs(x)))    #x magnitude floored
+    if x!=0:                                        # determine magnitude after rounding in case rounding changes magnitude
+        magnitude=math.floor(math.log10(abs(x)))    # x magnitude floored
     else:
-        magnitude=0                                 #for number 0 magnitude 0, practical for decimal prefix
+        magnitude=0                                 # for number 0 magnitude 0, practical for decimal prefix
     
     if round_static==False:
-        dec_places=magnitude*-1+precision-1         #decimal places required
+        dec_places=magnitude*-1+precision-1         # decimal places required
     else:
-        dec_places=precision                        #decimal places required
-    if dec_places<0:                                #at least 0 decimal places
+        dec_places=precision                        # decimal places required
+    if dec_places<0:                                # at least 0 decimal places
         dec_places=0
 
 
-    x=f"{x:0{width},.{dec_places}f}".replace(".", "%TEMP%").replace(",", ".").replace("%TEMP%", ",")    #int to str, comma as decimal separator
+    x=f"{x:0{width},.{dec_places}f}".replace(".", "%TEMP%").replace(",", ".").replace("%TEMP%", ",")    # int to str, comma as decimal separator
     
-    if trailing_zeros==False and "," in x:  #if trailing zeros undesired and decimal places existing:
-        x=x.rstrip("0")                     #remove trailing zeros
-        if x[-1]==",":                      #if because of that last character comma:
-            x=x[:-1]                        #remove comma
+    if trailing_zeros==False and "," in x:  # if trailing zeros undesired and decimal places existing:
+        x=x.rstrip("0")                     # remove trailing zeros
+        if x[-1]==",":                      # if because of that last character comma:
+            x=x[:-1]                        # remove comma
 
 
     return x
 
 
-def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True, width: int=0) -> str:   #converts to notation technical as string #type:ignore
+def notation_tech(x: float, precision: int, round_static: bool=False, trailing_zeros: bool=True, add_decimal_prefix: bool=True, width: int=0) -> str:   # converts to notation technical as string # type:ignore
     """
     Formats rounded number as string, changes magnitude for decimal prefixes (notation technical).
 
@@ -77,30 +77,30 @@ def notation_tech(x: float, precision: int, round_static: bool=False, trailing_z
 
     
     if round_static==False:
-        x=KFSmath.round_sig(x, precision)           #round to signifcant number
+        x=KFSmath.round_sig(x, precision)           # round to signifcant number
     else:
-        x=round(x, precision)                       #round to decimal place static
+        x=round(x, precision)                       # round to decimal place static
         
-    if x!=0:                                        #determine magnitude after rounding in case rounding changes magnitude
-        magnitude=math.floor(math.log10(abs(x)))    #x magnitude floored
+    if x!=0:                                        # determine magnitude after rounding in case rounding changes magnitude
+        magnitude=math.floor(math.log10(abs(x)))    # x magnitude floored
     else:
-        magnitude=0                                 #for number 0 magnitude 0, practical for decimal prefix
+        magnitude=0                                 # for number 0 magnitude 0, practical for decimal prefix
     
     if round_static==False:
-        dec_places=magnitude%3*-1+precision-1       #decimal places required
+        dec_places=magnitude%3*-1+precision-1       # decimal places required
     else:
-        dec_places=magnitude-magnitude%3+precision  #decimal places required
-    if dec_places<0:                                #at least 0 decimal places
+        dec_places=magnitude-magnitude%3+precision  # decimal places required
+    if dec_places<0:                                # at least 0 decimal places
         dec_places=0
 
-    x=f"{x/math.pow(10, magnitude-magnitude%3):0{width}.{dec_places}f}".replace(".", ",")   #int to str, to correct magnitude and number of decimal places, comma as decimal separator
+    x=f"{x/math.pow(10, magnitude-magnitude%3):0{width}.{dec_places}f}".replace(".", ",")   # int to str, to correct magnitude and number of decimal places, comma as decimal separator
     
-    if trailing_zeros==False and "," in x:  #if trailing zeros undesired and decimal places existing:
-        x=x.rstrip("0")                     #remove trailing zeros
-        if x[-1]==",":                      #if because of that last character comma:
-            x=x[:-1]                        #remove comma
+    if trailing_zeros==False and "," in x:  # if trailing zeros undesired and decimal places existing:
+        x=x.rstrip("0")                     # remove trailing zeros
+        if x[-1]==",":                      # if because of that last character comma:
+            x=x[:-1]                        # remove comma
     
-    if add_decimal_prefix==True:    #if decimal prefix desired: append
+    if add_decimal_prefix==True:    # if decimal prefix desired: append
         if    30<=magnitude and magnitude< 33:
             x+="Q"
         elif  27<=magnitude and magnitude< 30:
@@ -150,7 +150,7 @@ def notation_tech(x: float, precision: int, round_static: bool=False, trailing_z
     return x
 
 
-colour_i=0  #which colour currently? memorise for continueing at next function call
+colour_i=0  # which colour currently? memorise for continueing at next function call
 def rainbowify(string_in: str) -> str:
     """
     Dyes input string to rainbow.
@@ -163,8 +163,8 @@ def rainbowify(string_in: str) -> str:
     """
     import colorama
     global colour_i
-    string_out: str=""          #result
-    RAINBOW_COLOURS: list=[     #dye definition
+    string_out: str=""          # result
+    RAINBOW_COLOURS: list=[     # dye definition
         colorama.Fore.MAGENTA,
         colorama.Fore.RED,
         colorama.Fore.YELLOW,
@@ -173,15 +173,15 @@ def rainbowify(string_in: str) -> str:
         colorama.Fore.BLUE,
     ]
 
-    if sys.platform=="win32" or sys.platform=="cygwin": #if windows:
-        colorama.just_fix_windows_console()             #enable colours on windows console
+    if sys.platform=="win32" or sys.platform=="cygwin": # if windows:
+        colorama.just_fix_windows_console()             # enable colours on windows console
 
 
     for char in string_in:
-        string_out+=RAINBOW_COLOURS[colour_i]           #dye
-        string_out+=char                                #append character
-        if char!=" ":                                   #if no space:
-            colour_i=(colour_i+1)%len(RAINBOW_COLOURS)  #colour next
-    string_out+=colorama.Style.RESET_ALL                #reset colours
+        string_out+=RAINBOW_COLOURS[colour_i]           # dye
+        string_out+=char                                # append character
+        if char!=" ":                                   # if no space:
+            colour_i=(colour_i+1)%len(RAINBOW_COLOURS)  # colour next
+    string_out+=colorama.Style.RESET_ALL                # reset colours
 
     return string_out
