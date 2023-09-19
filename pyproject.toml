@@ -1,0 +1,32 @@
+[tool.poetry]
+authors     = ["9FS <pray4spam@googlemail.com>"]
+description = "a collection of miscellaneous functions"
+license     = "MIT"
+name        = "KFS"
+readme      = "readme.md"
+repository  = "https://github.com/9-FS/2022-04-07-KFS-Library-Python"
+version     = "1.0.0"
+
+[tool.poetry.dependencies]
+certifi            = "^2022.12.7"
+charset-normalizer = "^3.0.1"
+colorama           = "^0.4.6"
+dropbox            = "^11.36.0"
+greenlet           = "^2.0.1"
+idna               = "^3.4"
+lxml               = "^4.9.2"
+pillow             = "^9.4.0"
+playwright         = "^1.32.1"
+ply                = "^3.11"
+pyee               = "^9.0.4"
+python             = "^3.11"
+requests           = "^2.28.0"
+six                = "^1.16.0"
+stone              = "^3.3.1"
+typing-extensions  = "^4.5.0"
+urllib3            = "^1.26.14"
+
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires      = ["poetry-core"]

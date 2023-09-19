@@ -3,7 +3,7 @@
 *.log
 *.pyc
 *.token
-/deprecated/
 /doc_templates/
+/KFS/deprecated/
 /log/
-/src/test.py
+test.py
