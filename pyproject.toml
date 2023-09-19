@@ -5,7 +5,7 @@ license     = "MIT"
 name        = "KFS"
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/2022-04-07-KFS-Library-Python"
-version     = "1.0.1"
+version     = "1.0.2"
 
 [tool.poetry.dependencies]
 colorama = "^0.4.6"
