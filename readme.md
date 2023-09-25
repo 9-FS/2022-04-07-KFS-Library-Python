@@ -12,6 +12,8 @@ Author: "구FS"
 - [1. General](#1-general)
 - [2. Installation](#2-installation)
 
+**This library is deprecated and has been split up into its individual modules for better dependency management. Please use the new libraries.**
+
 ## 1. General
 
 This library is a collection of miscellaneous functions that turned out to be quite useful to have while creating my other projects. They are more or less grouped by common topic in a module.  

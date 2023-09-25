@@ -6,7 +6,7 @@ name        = "KFS"
 packages    = [{ include = "KFS" }]
 readme      = "readme.md"
 repository  = "https://github.com/9-FS/2022-04-07-KFS-Library-Python"
-version     = "1.1.0"
+version     = "1.1.1"
 
 [tool.poetry.dependencies]
 colorama = "^0.4.6"
